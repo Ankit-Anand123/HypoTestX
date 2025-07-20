@@ -1,9 +1,6 @@
-"""
-Probability distributions implemented from scratch
-"""
 from typing import List, Optional
 from .basic import exp, ln, sqrt, power, PI, factorial, combination
-from .special import gamma, beta, erf
+from .special import gamma, beta, erf, gamma_incomplete, beta_incomplete
 
 class Distribution:
     """Base class for probability distributions"""
@@ -124,6 +121,45 @@ class StudentT(Distribution):
             return 1 - result
         else:
             return result
+    
+    def ppf(self, p: float) -> float:
+        """t-distribution percent point function (inverse CDF)"""
+        if not 0 < p < 1:
+            raise ValueError("Probability must be between 0 and 1")
+        
+        # For large df, use normal approximation
+        if self.df > 100:
+            normal = Normal(0, 1)
+            return normal.ppf(p)
+        
+        # Use iterative method to find inverse
+        return self._inverse_t_cdf(p)
+    
+    def _inverse_t_cdf(self, p: float) -> float:
+        """Approximate inverse t-distribution CDF using bisection"""
+        if p == 0.5:
+            return 0.0
+        
+        # Initial bounds
+        if p < 0.5:
+            lower, upper = -10.0, 0.0
+        else:
+            lower, upper = 0.0, 10.0
+        
+        # Bisection method
+        for _ in range(100):
+            mid = (lower + upper) / 2
+            cdf_mid = self.cdf(mid)
+            
+            if abs(cdf_mid - p) < 1e-10:
+                return mid
+            
+            if cdf_mid < p:
+                lower = mid
+            else:
+                upper = mid
+        
+        return (lower + upper) / 2
 
 class ChiSquare(Distribution):
     """Chi-square distribution"""
@@ -137,11 +173,21 @@ class ChiSquare(Distribution):
         """Chi-square probability density function"""
         if x < 0:
             return 0.0
-        if x == 0:
-            return 0.0 if self.df > 2 else float('inf')
         
-        coefficient = 1 / (power(2, self.df / 2) * gamma(self.df / 2))
-        return coefficient * power(x, self.df / 2 - 1) * exp(-x / 2)
+        if x == 0:
+            if self.df < 2:
+                return float('inf')
+            elif self.df == 2:
+                return 0.5  # For df=2, PDF at x=0 is 1/2
+            else:
+                return 0.0  # For df>2, PDF at x=0 is 0
+        
+        # For x > 0, use the standard formula
+        try:
+            coefficient = 1 / (power(2, self.df / 2) * gamma(self.df / 2))
+            return coefficient * power(x, self.df / 2 - 1) * exp(-x / 2)
+        except (OverflowError, ZeroDivisionError):
+            return 0.0
     
     def cdf(self, x: float) -> float:
         """Chi-square cumulative distribution function"""
@@ -149,7 +195,38 @@ class ChiSquare(Distribution):
             return 0.0
         
         # Use incomplete gamma function
-        return gamma_incomplete(self.df / 2, x / 2) / gamma(self.df / 2)
+        try:
+            return gamma_incomplete(self.df / 2, x / 2) / gamma(self.df / 2)
+        except (OverflowError, ZeroDivisionError):
+            return 1.0 if x > self.df + 10 * sqrt(2 * self.df) else 0.0
+    
+    def ppf(self, p: float) -> float:
+        """Chi-square percent point function (inverse CDF)"""
+        if not 0 < p < 1:
+            raise ValueError("Probability must be between 0 and 1")
+        
+        # Use iterative method to find inverse
+        return self._inverse_chi2_cdf(p)
+    
+    def _inverse_chi2_cdf(self, p: float) -> float:
+        """Approximate inverse chi-square CDF using bisection"""
+        # Initial bounds
+        lower, upper = 0.0, self.df + 6 * sqrt(2 * self.df)
+        
+        # Bisection method
+        for _ in range(100):
+            mid = (lower + upper) / 2
+            cdf_mid = self.cdf(mid)
+            
+            if abs(cdf_mid - p) < 1e-10:
+                return mid
+            
+            if cdf_mid < p:
+                lower = mid
+            else:
+                upper = mid
+        
+        return (lower + upper) / 2
 
 class F(Distribution):
     """F-distribution"""
@@ -165,19 +242,57 @@ class F(Distribution):
         if x <= 0:
             return 0.0
         
-        coefficient = (gamma((self.df1 + self.df2) / 2) / 
-                      (gamma(self.df1 / 2) * gamma(self.df2 / 2)))
-        coefficient *= power(self.df1 / self.df2, self.df1 / 2)
-        coefficient *= power(x, self.df1 / 2 - 1)
-        denominator = power(1 + (self.df1 / self.df2) * x, (self.df1 + self.df2) / 2)
-        
-        return coefficient / denominator
+        try:
+            coefficient = (gamma((self.df1 + self.df2) / 2) / 
+                          (gamma(self.df1 / 2) * gamma(self.df2 / 2)))
+            coefficient *= power(self.df1 / self.df2, self.df1 / 2)
+            coefficient *= power(x, self.df1 / 2 - 1)
+            denominator = power(1 + (self.df1 / self.df2) * x, (self.df1 + self.df2) / 2)
+            
+            return coefficient / denominator
+        except (OverflowError, ZeroDivisionError):
+            return 0.0
     
     def cdf(self, x: float) -> float:
         """F-distribution cumulative distribution function"""
         if x <= 0:
             return 0.0
         
-        # Use incomplete beta function
-        t = self.df1 * x / (self.df1 * x + self.df2)
-        return beta_incomplete(self.df1 / 2, self.df2 / 2, t)
+        try:
+            # Use incomplete beta function
+            t = self.df1 * x / (self.df1 * x + self.df2)
+            return beta_incomplete(self.df1 / 2, self.df2 / 2, t)
+        except (OverflowError, ZeroDivisionError):
+            return 1.0 if x > 10 else 0.0
+    
+    def ppf(self, p: float) -> float:
+        """F-distribution percent point function (inverse CDF)"""
+        if not 0 < p < 1:
+            raise ValueError("Probability must be between 0 and 1")
+        
+        # Use iterative method to find inverse
+        return self._inverse_f_cdf(p)
+    
+    def _inverse_f_cdf(self, p: float) -> float:
+        """Approximate inverse F-distribution CDF using bisection"""
+        # Initial bounds
+        lower, upper = 0.0, 10.0
+        
+        # Expand upper bound if necessary
+        while self.cdf(upper) < p:
+            upper *= 2
+        
+        # Bisection method
+        for _ in range(100):
+            mid = (lower + upper) / 2
+            cdf_mid = self.cdf(mid)
+            
+            if abs(cdf_mid - p) < 1e-10:
+                return mid
+            
+            if cdf_mid < p:
+                lower = mid
+            else:
+                upper = mid
+        
+        return (lower + upper) / 2
