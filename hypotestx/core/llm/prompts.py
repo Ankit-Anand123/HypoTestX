@@ -127,7 +127,7 @@ def build_schema(df) -> "SchemaInfo":
         for col in df.columns:
             dtype_str = str(df[col].dtype)
             info.dtypes[col] = dtype_str
-            if dtype_str in ("object", "category", "string", "bool"):
+            if dtype_str in ("object", "category", "string", "str", "bool", "boolean"):
                 vals = [str(v) for v in df[col].dropna().unique()[:20]]
                 info.categoricals[col] = vals
             elif "int" in dtype_str or "float" in dtype_str:
