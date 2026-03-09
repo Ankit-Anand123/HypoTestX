@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypotestx"
-version = "1.0.0"
+version = "1.0.1"
 description = "Natural language hypothesis testing and comprehensive statistics library"
 authors = [
-    {name = "HypoTestX Contributors", email = "hypotestx@example.com"}
+    {name = "Ankit"}
 ]
 readme = "README.md"
 license = {file = "LICENSE"}

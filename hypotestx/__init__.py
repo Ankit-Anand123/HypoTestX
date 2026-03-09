@@ -90,8 +90,8 @@ from .utils.preprocessing import (
     rank_transform, center, robust_scale,
 )
 
-__version__ = "1.0.0"
-__author__ = "HypoTestX Contributors"
+__version__ = "1.0.1"
+__author__ = "Ankit"
 
 # ── LLM-powered natural language interface ───────────────────────────────────
 from .core.engine import analyze

@@ -4,8 +4,8 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/hypotestx)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/yourusername/hypotestx)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
+[![Coverage](https://img.shields.io/badge/coverage-64%25-yellowgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
 
 > **Ask a statistical question in plain English. HypoTestX routes it to the right test — with or without an LLM.**
 
@@ -630,8 +630,8 @@ We welcome contributions! Here's how to get started:
 
 ### Development Setup
 ```bash
-git clone https://github.com/yourusername/hypotestx.git
-cd hypotestx
+git clone https://github.com/Ankit-Anand123/HypoTestX.git
+cd HypoTestX
 
 # Create virtual environment
 python -m venv venv
@@ -668,19 +668,12 @@ pytest
 ## 📖 Documentation
 
 ### Full Documentation
-- 📚 [User Guide](https://hypotestx.readthedocs.io/en/latest/user_guide/)
-- 🔧 [API Reference](https://hypotestx.readthedocs.io/en/latest/api/)
-- 🎓 [Tutorials](https://hypotestx.readthedocs.io/en/latest/tutorials/)
-- 💡 [Examples](https://hypotestx.readthedocs.io/en/latest/examples/)
+> Documentation site is not yet available. In the meantime, refer to this README, the inline docstrings, and the example notebooks below.
 
 ### Jupyter Notebooks
 - [Getting Started Tutorial](examples/notebooks/getting_started.ipynb)
 - [Advanced Statistical Analysis](examples/notebooks/advanced_features.ipynb)
 - [Real-World Case Studies](examples/notebooks/real_world_cases.ipynb)
-
-### Video Tutorials
-- [HypoTestX in 10 Minutes](https://youtu.be/hypotestx-intro)
-- [Advanced Features Walkthrough](https://youtu.be/hypotestx-advanced)
 
 ---
 
@@ -748,26 +741,19 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
 - Meta-analysis tools
 - Interactive Jupyter widgets for results
 
-### Version 1.0.0 (Planned)
+### Version 1.0.0 (Released)
 - Domain-specific packages (clinical, A/B testing, finance)
 - Publication-ready PDF/HTML reporting
-- Full documentation site
-- R interoperability layer
+- LLM-powered `analyze()` interface with plug-in backend system
+- Full test suite (483 tests passing)
 
 ---
 
 ## Support & Community
 
 ### Getting Help
-- 💬 [GitHub Discussions](https://github.com/yourusername/hypotestx/discussions)
-- 🐛 [Issue Tracker](https://github.com/yourusername/hypotestx/issues)
-- 📧 [Email Support](mailto:support@hypotestx.org)
-- 💬 [Discord Community](https://discord.gg/hypotestx)
-
-### Stay Updated
-- 🐦 [Twitter](https://twitter.com/hypotestx)
-- 📧 [Newsletter](https://hypotestx.org/newsletter)
-- 📝 [Blog](https://hypotestx.org/blog)
+- 💬 [GitHub Discussions](https://github.com/Ankit-Anand123/HypoTestX/discussions)
+- 🐛 [Issue Tracker](https://github.com/Ankit-Anand123/HypoTestX/issues)
 
 ---
 
@@ -795,13 +781,8 @@ copies or substantial portions of the Software.
 
 ## 🙏 Acknowledgments
 
-### Core Team
-- **Lead Developer**: [Your Name](https://github.com/yourusername)
-- **Statistics Advisor**: Dr. Jane Smith (Stanford University)
-- **NLP Specialist**: Alex Johnson (Google Research)
-
-### Contributors
-Special thanks to all [contributors](https://github.com/yourusername/hypotestx/graphs/contributors) who have helped make HypoTestX better.
+### Author
+- **Ankit** — [Ankit-Anand123](https://github.com/Ankit-Anand123) — sole developer and maintainer
 
 ### Inspiration
 - **R's** elegant statistical interface
@@ -823,12 +804,12 @@ Optional extras that unlock additional functionality:
 If you use HypoTestX in your research, please cite:
 
 ```bibtex
-@software{hypotestx2026,
-  author = {Your Name and Contributors},
+@software{hypotestx2025,
+  author = {Ankit},
   title = {HypoTestX: Natural Language Hypothesis Testing for Python},
-  url = {https://github.com/yourusername/hypotestx},
-  version = {0.1.0},
-  year = {2026}
+  url = {https://github.com/Ankit-Anand123/HypoTestX},
+  version = {1.0.0},
+  year = {2025}
 }
 ```
 
@@ -838,6 +819,6 @@ If you use HypoTestX in your research, please cite:
 
 **Made with ❤️ for the data science community**
 
-[Website](https://hypotestx.org) • [Documentation](https://hypotestx.readthedocs.io) • [GitHub](https://github.com/yourusername/hypotestx) • [PyPI](https://pypi.org/project/hypotestx/)
+[GitHub](https://github.com/Ankit-Anand123/HypoTestX) • [PyPI](https://pypi.org/project/hypotestx/)
 
 </div>
