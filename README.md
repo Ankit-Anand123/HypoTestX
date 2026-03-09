@@ -1,60 +1,84 @@
-# HypoTestX 🧪
+# HypoTestX
 
-**Natural Language Hypothesis Testing Made Simple**
+**Natural Language Hypothesis Testing — Powered by LLMs or Pure Regex**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/hypotestx)
 [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/yourusername/hypotestx)
 
-> **Democratizing statistical analysis through natural language processing and pure Python mathematical implementations.**
+> **Ask a statistical question in plain English. HypoTestX routes it to the right test — with or without an LLM.**
 
-HypoTestX transforms how you interact with statistical testing. Ask questions in plain English and get rigorous statistical results with clear, interpretable output. No more memorizing function names or statistical jargon—just ask your question naturally.
+HypoTestX gives you two ways to run hypothesis tests:
+
+- **Direct API** — call any of 12 statistical tests explicitly with full parameter control.
+- **Natural language interface** — pass a plain-English question and a DataFrame to `analyze()`. HypoTestX parses the intent (via a regex fallback or a real LLM), picks the right test, extracts the right columns, and returns a full `HypoResult`.
+
+The mathematical core is **pure Python** — no NumPy, no SciPy, no compiled extensions required.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 🗣️ **Natural Language Interface**
+### Natural Language Interface — `analyze()`
 ```python
-import hypotestx as htx
+import hypotestx as hx
+import pandas as pd
 
-# Just ask your question naturally!
-result = htx.test("Do males spend more than females on average?", data=df)
+df = pd.read_csv('survey.csv')
+
+# Zero config — built-in regex router, no API key needed
+result = hx.analyze(df, "Do males earn more than females?")
 print(result.summary())
 ```
 
-### 🧮 **Pure Python Mathematics**
-- **Zero dependencies** for mathematical operations
-- All statistical functions implemented from scratch
-- Complete transparency and customizability
-- Educational value—see exactly how statistics work
+### Plug-in LLM Backends
+Swap in any LLM with a single keyword argument — no code changes:
 
-### 🎯 **Dual Mode Design**
 ```python
-# Beginner-friendly natural language
-htx.test("Is there a difference between group A and B?", data=df)
+# Google Gemini (free tier, 1500 req/day)
+result = hx.analyze(df, "Is age correlated with salary?",
+                    backend="gemini", api_key="AIza...")
 
-# Expert mode with full control
-htx.ttest_2samp(group1, group2, equal_var=False, alpha=0.01)
+# Groq (free tier, OpenAI-compatible)
+result = hx.analyze(df, "Is there an association between gender and dept?",
+                    backend="groq", api_key="gsk_...")
+
+# Local Ollama (completely offline)
+result = hx.analyze(df, "Compare satisfaction across regions?",
+                    backend="ollama")
+
+# Bring your own callable
+result = hx.analyze(df, "Any question",
+                    backend=lambda msgs: my_llm(msgs[-1]["content"]))
 ```
 
-### 📊 **Comprehensive Statistical Toolkit**
-- **Parametric tests**: t-tests, ANOVA, regression
-- **Non-parametric tests**: Mann-Whitney, Wilcoxon, Kruskal-Wallis
-- **Categorical tests**: Chi-square, Fisher's exact
-- **Effect sizes**: Cohen's d, eta-squared, Cramer's V
-- **Power analysis**: Sample size calculations, post-hoc power
+### Pure Python Mathematics
+- **Zero dependencies** for all statistical computations
+- All test functions and distributions implemented from scratch
+- Complete transparency — read the source to see exactly how statistics work
+- All LLM HTTP calls use only `urllib.request` from the standard library
 
-### 🎓 **Educational & Interpretable**
-- Plain English explanations of results
-- Assumption checking with remediation suggestions
-- Visual diagnostics and publication-ready plots
-- Statistical literacy building
+### Dual Mode Design
+```python
+# Natural language — let HypoTestX choose the test
+hx.analyze(df, "Is there a difference between group A and B?")
+
+# Direct API — explicit control over every parameter
+hx.ttest_2samp(group1, group2, equal_var=False, alpha=0.01)
+```
+
+### Comprehensive Statistical Toolkit
+- **Parametric tests**: one-sample, two-sample, paired t-tests, one-way ANOVA
+- **Non-parametric tests**: Mann-Whitney U, Wilcoxon signed-rank, Kruskal-Wallis
+- **Categorical tests**: chi-square (independence + GoF), Fisher's exact
+- **Correlation**: Pearson, Spearman, point-biserial
+- **Effect sizes**: Cohen's d, eta-squared, Cramer's V, rank-biserial r
+- **Power analysis**: sample size calculations, post-hoc power
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -62,280 +86,440 @@ htx.ttest_2samp(group1, group2, equal_var=False, alpha=0.01)
 pip install hypotestx
 ```
 
-For advanced natural language processing:
-```bash
-# Install spaCy model for better NLP
-python -m spacy download en_core_web_sm
+No mandatory external dependencies — all statistical maths and HTTP calls are pure Python stdlib.  
+Optional extras:
 
-# Optional: Install visualization dependencies
-pip install hypotestx[visualization]
+```bash
+# For local Ollama backend (free, offline)
+# 1. Install Ollama from https://ollama.com
+# 2. Pull a model:  ollama pull llama3.2
+
+# For HuggingFace local inference (optional)
+pip install transformers torch
+
+# For visualization helpers (optional)
+pip install matplotlib
 ```
 
 ### Basic Usage
 
 ```python
-import hypotestx as htx
+import hypotestx as hx
 import pandas as pd
 
 # Load your data
 df = pd.read_csv('your_data.csv')
 
-# Ask questions naturally
-result = htx.test("Do customers in region A spend more than region B?", data=df)
+# Ask questions naturally — no API key required (regex fallback)
+result = hx.analyze(df, "Do customers in region A spend more than region B?")
 
 # Get comprehensive results
 print(result.summary())
-# 🧪 Student's t-test (equal variances)
-# =======================================
-# Result: ✅ Significant (α = 0.05)
-# Test statistic: 3.2456
-# p-value: 0.0012
-# Cohen's d: 0.6834 (medium)
-# 95% Confidence Interval: [1.23, 4.56]
+# [ Welch's t-test (unequal variances) ]
+# =========================================
+# Statistic (t):   3.2456
+# p-value:         0.0012
+# Significant:     Yes (alpha = 0.05)
+# Effect size (d): 0.6834   (medium)
+# 95% CI:          [1.23, 4.56]
 
-# Check if assumptions were met
-print(result.assumptions_met)
-# {'normality': True, 'equal_variances': True, 'independence': True}
+# Access individual values
+print(result.p_value)          # 0.0012
+print(result.effect_size)      # 0.6834
+print(result.is_significant)   # True
 ```
 
 ---
 
-## 📚 Examples
+## Examples
 
 ### One-Sample t-test
 ```python
 # Natural language
-result = htx.test("Is the average score different from 75?", data=df['scores'])
+result = hx.analyze(df, "Is the average score different from 75?")
 
-# Explicit
-result = htx.ttest_1samp(df['scores'], mu=75, alternative='two-sided')
+# Direct API
+result = hx.ttest_1samp(df['scores'].tolist(), mu=75, alternative='two-sided')
 ```
 
 ### Two-Sample t-test
 ```python
-# Natural language with automatic column detection
-result = htx.test("Do males have higher income than females?", data=df)
+# Natural language — columns detected from schema
+result = hx.analyze(df, "Do males have higher income than females?")
 
-# Explicit with full control
-males = df[df['gender'] == 'M']['income']
-females = df[df['gender'] == 'F']['income']
-result = htx.ttest_2samp(males, females, alternative='greater', equal_var=False)
+# Direct API with full control
+males   = df[df['gender'] == 'M']['income'].tolist()
+females = df[df['gender'] == 'F']['income'].tolist()
+result  = hx.ttest_2samp(males, females, alternative='greater', equal_var=False)
 ```
 
 ### Paired t-test
 ```python
 # Natural language
-result = htx.test("Did scores improve from before to after training?", 
-                  before=df['pre_score'], after=df['post_score'])
+result = hx.analyze(df, "Did scores improve from pre_score to post_score?")
 
-# Explicit
-result = htx.ttest_paired(df['pre_score'], df['post_score'], alternative='less')
+# Direct API
+result = hx.ttest_paired(df['pre_score'].tolist(), df['post_score'].tolist(),
+                         alternative='less')
 ```
 
-### Advanced Analysis
+### Correlation
 ```python
-# Complex hypothesis with multiple considerations
-result = htx.test("""
-    Is there a significant difference in customer satisfaction scores 
-    between our premium and basic service tiers, controlling for region?
-""", data=df)
+# Natural language
+result = hx.analyze(df, "Is age correlated with salary?")
 
-# The parser automatically detects:
-# - Test type: Two-sample t-test
-# - Variables: satisfaction_score (dependent), service_tier (independent)
-# - Potential confounders: region
-# - Appropriate assumptions checks
+# Direct API
+result = hx.pearson(df['age'].tolist(), df['salary'].tolist())
+```
+
+### Categorical Association
+```python
+# Natural language
+result = hx.analyze(df, "Is there an association between gender and department?")
+
+# Direct API
+import hypotestx as hx
+table = [[30, 10], [20, 40]]   # 2x2 contingency table
+result = hx.chi2_test(table)
+```
+
+### Using a Real LLM Backend
+```python
+import hypotestx as hx
+import pandas as pd
+
+df = pd.read_csv('employees.csv')
+
+# Gemini free tier — best out-of-the-box accuracy
+result = hx.analyze(
+    df,
+    "Is there a salary difference between engineering and sales departments?",
+    backend="gemini",
+    api_key="AIza...",
+)
+print(result.summary())
+
+# Groq free tier (OpenAI-compatible, very fast)
+result = hx.analyze(
+    df,
+    "Is employee satisfaction correlated with tenure?",
+    backend="groq",
+    api_key="gsk_...",
+)
+
+# Local Ollama (fully offline, no API key)
+result = hx.analyze(
+    df,
+    "Are there differences in performance scores across teams?",
+    backend="ollama",           # uses llama3.2 by default
+    model="phi4",               # override model
+)
 ```
 
 ---
 
-## 🧠 Natural Language Examples
+## Natural Language Examples
 
-HypoTestX understands various ways of asking statistical questions:
+`analyze()` understands plain English. The built-in regex fallback handles the patterns below with no API key. A real LLM backend handles arbitrarily complex phrasings.
 
-### Comparison Questions
+### Two-group comparisons
 ```python
-# All of these work:
-"Do males spend more than females?"
-"Is there a difference between group A and group B?"
-"Are premium customers different from basic customers?"
-"Compare satisfaction scores across regions"
-"Test whether method 1 is better than method 2"
+hx.analyze(df, "Do males spend more than females?")
+hx.analyze(df, "Is there a difference between group A and group B?")
+hx.analyze(df, "Are premium customers different from basic customers?")
+hx.analyze(df, "Test whether method 1 is better than method 2")
 ```
 
-### Specific Value Tests
+### One-sample tests
 ```python
-"Is the average different from 100?"
-"Test if the mean equals 50"
-"Is the score significantly greater than 75?"
+hx.analyze(df, "Is the average score different from 100?")
+hx.analyze(df, "Test if the mean equals 50")
+hx.analyze(df, "Is the average significantly greater than 75?")
 ```
 
-### Relationship Questions
+### Correlation & relationships
 ```python
-"Is there a correlation between age and income?"
-"Are gender and preference independent?"
-"Is there an association between treatment and outcome?"
+hx.analyze(df, "Is there a correlation between age and income?")
+hx.analyze(df, "Is salary related to years of experience?")
+hx.analyze(df, "Does age predict salary?")
 ```
 
-### Advanced Queries
+### Categorical associations
 ```python
-"Analyze customer spending across multiple product categories"
-"Test for differences in conversion rates by traffic source"
-"Compare employee satisfaction before and after policy change"
+hx.analyze(df, "Are gender and department independent?")
+hx.analyze(df, "Is there an association between treatment and outcome?")
+hx.analyze(df, "Are product preference and region related?")
+```
+
+### Multi-group comparisons
+```python
+hx.analyze(df, "Compare satisfaction scores across all regions")
+hx.analyze(df, "Are there differences in performance across three teams?")
+```
+
+### Paired / before-after
+```python
+hx.analyze(df, "Did scores improve from pre_score to post_score?")
+hx.analyze(df, "Compare before and after treatment")
 ```
 
 ---
 
-## 🎯 Supported Tests
+## Supported Tests
 
-### Parametric Tests
-| Test | Natural Language Examples | Function |
-|------|-------------------------|----------|
-| One-sample t-test | "Is mean different from X?" | `ttest_1samp()` |
+### Parametric
+| Test | NL phrase examples | Direct function |
+|---|---|---|
+| One-sample t-test | "Is the mean different from 100?" | `ttest_1samp()` |
 | Two-sample t-test | "Do groups differ?" | `ttest_2samp()` |
-| Paired t-test | "Did values change?" | `ttest_paired()` |
-| Welch's t-test | "Compare with unequal variances" | `welch_ttest()` |
-| One-way ANOVA | "Compare multiple groups" | `anova_1way()` |
+| Welch's t-test | "Compare (unequal variances)" | `welch_ttest()` |
+| Paired t-test | "Did scores change?" | `ttest_paired()` |
+| One-way ANOVA | "Compare three or more groups" | `anova_1way()` |
 
-### Non-Parametric Tests
-| Test | Natural Language Examples | Function |
-|------|-------------------------|----------|
-| Mann-Whitney U | "Compare groups (non-normal)" | `mannwhitney()` |
-| Wilcoxon signed-rank | "Paired comparison (non-normal)" | `wilcoxon()` |
+### Non-Parametric
+| Test | NL phrase examples | Direct function |
+|---|---|---|
+| Mann-Whitney U | "Compare (non-normal data)" | `mannwhitney()` |
+| Wilcoxon signed-rank | "Paired (non-normal)" | `wilcoxon()` |
 | Kruskal-Wallis | "Multiple groups (non-normal)" | `kruskal()` |
 
-### Categorical Tests
-| Test | Natural Language Examples | Function |
-|------|-------------------------|----------|
-| Chi-square | "Are variables independent?" | `chi2_test()` |
-| Fisher's exact | "Small sample independence" | `fisher_exact()` |
+### Categorical
+| Test | NL phrase examples | Direct function |
+|---|---|---|
+| Chi-square | "Are the variables independent?" | `chi2_test()` |
+| Fisher's exact | "2x2 table, small sample" | `fisher_exact()` |
 
-### Correlation & Association
-| Test | Natural Language Examples | Function |
-|------|-------------------------|----------|
-| Pearson correlation | "Linear relationship?" | `pearson()` |
-| Spearman correlation | "Monotonic relationship?" | `spearman()` |
+### Correlation
+| Test | NL phrase examples | Direct function |
+|---|---|---|
+| Pearson | "Linear relationship between X and Y?" | `pearson()` |
+| Spearman | "Monotonic / rank correlation?" | `spearman()` |
 | Point-biserial | "Continuous vs binary?" | `pointbiserial()` |
 
 ---
 
-## 📈 Advanced Features
+## Advanced Features
+
+### LLM Backends
+
+All backends require zero extra dependencies except where noted.
+
+| Backend string | Provider | Cost | Dependencies |
+|---|---|---|---|
+| `None` / `"fallback"` | Built-in regex router | Free, offline | None |
+| `"ollama"` | Local Ollama (llama3.2, phi4, …) | Free, offline | Ollama app |
+| `"gemini"` | Google Gemini 1.5 Flash | Free (1500 req/day) | None |
+| `"groq"` | Groq Cloud (llama3, mixtral, …) | Free tier | None |
+| `"openai"` | OpenAI GPT-4o / GPT-4o-mini | Paid | None |
+| `"together"` | Together AI | Free tier | None |
+| `"mistral"` | Mistral AI | Free tier | None |
+| `"huggingface"` | HF Inference API or local | Free tier / Local | `transformers` (local only) |
+
+```python
+import hypotestx as hx
+
+# --- Ollama (local, offline) ---
+result = hx.analyze(df, "Do males earn more?",
+                    backend="ollama", model="phi4")
+
+# --- Gemini free tier ---
+result = hx.analyze(df, "Is age correlated with salary?",
+                    backend="gemini", api_key="AIza...")
+
+# --- Groq free tier (very fast) ---
+result = hx.analyze(df, "Compare departments",
+                    backend="groq", api_key="gsk_...")
+
+# --- Custom / plug-in backend ---
+class MyCompanyLLM(hx.LLMBackend):
+    name = "my_llm"
+    def chat(self, messages):
+        # messages is a list of {"role": ..., "content": ...} dicts
+        return my_internal_api.complete(messages[-1]["content"])
+
+result = hx.analyze(df, "Is satisfaction higher in Q4?",
+                    backend=MyCompanyLLM())
+
+# --- Wrap any callable ---
+result = hx.analyze(df, "...",
+                    backend=lambda msgs: my_fn(msgs[-1]["content"]))
+```
 
 ### Assumption Checking
 ```python
-result = htx.test("Compare groups A and B", data=df)
+from hypotestx import check_normality, check_equal_variances
 
-# Automatic assumption checking
-if not result.assumptions_met['normality']:
-    print("⚠️ Normality assumption violated")
-    print("💡 Consider using Mann-Whitney U test instead")
-    
-    # Automatic fallback
-    robust_result = htx.test("Compare groups A and B", data=df, 
-                           method='non-parametric')
+norm = check_normality(data)
+if not norm.is_significant:          # Shapiro-Wilk p > 0.05 -> normal
+    print("Normality assumption met")
+else:
+    print("Non-normal — consider Mann-Whitney U")
+    result = hx.mannwhitney(group1, group2)
 ```
 
 ### Effect Size Interpretation
 ```python
-result = htx.ttest_2samp(group1, group2)
+result = hx.ttest_2samp(group1, group2)
 
 print(f"Effect size: {result.effect_size:.3f}")
-print(f"Magnitude: {result.effect_magnitude}")  # 'small', 'medium', 'large'
+print(f"Magnitude:   {result.effect_magnitude}")  # 'small', 'medium', 'large'
 
-# Practical significance
-if result.is_significant and result.effect_magnitude in ['medium', 'large']:
-    print("✅ Both statistically and practically significant!")
+if result.is_significant and result.effect_magnitude in ('medium', 'large'):
+    print("Both statistically and practically significant")
 ```
 
 ### Power Analysis
 ```python
 # How many participants do I need?
-power_result = htx.power_analysis(
-    effect_size=0.5,  # Expected Cohen's d
-    alpha=0.05,
-    power=0.8,
-    test_type='two_sample_ttest'
+n = hx.n_ttest_two_sample(effect_size=0.5, alpha=0.05, power=0.8)
+print(f"Required n per group: {n}")
+
+# Post-hoc power
+pow_result = hx.power_ttest_two_sample(
+    effect_size=0.4, n1=30, n2=30, alpha=0.05
 )
-print(f"Required sample size: {power_result.n_required}")
-
-# What power did I achieve?
-post_power = htx.post_hoc_power(result)
-print(f"Achieved power: {post_power.power:.2f}")
+print(f"Achieved power: {pow_result.power:.2f}")
 ```
 
-### Robust Statistics
+### Bootstrap & Permutation Tests
 ```python
-# Outlier-resistant alternatives
-result = htx.robust_ttest(group1, group2, method='trimmed_mean', trim=0.1)
+# Bootstrap confidence interval for the difference in means
+result = hx.bootstrap_ci(group1, statistic='mean', n_bootstrap=5000)
+print(f"95% CI: {result}")
 
-# Bootstrap confidence intervals
-result = htx.bootstrap_test(group1, group2, n_bootstrap=10000)
+# Permutation test (non-parametric, exact)
+result = hx.permutation_test(group1, group2, n_permutations=10000)
 ```
 
-### Multiple Comparisons
+### Verbose Mode
 ```python
-# Automatic corrections for multiple testing
-results = htx.test_multiple([
-    "Group A vs B",
-    "Group A vs C", 
-    "Group B vs C"
-], data=df, correction='bonferroni')
-
-for result in results:
-    print(f"{result.comparison}: p = {result.p_adjusted:.4f}")
+# See which test was selected and why
+result = hx.analyze(
+    df, "Is salary different between genders?",
+    backend="gemini", api_key="AIza...",
+    verbose=True,
+)
+# [HypoTestX] Schema: 500 rows, columns: ['gender', 'salary', 'age']
+# [HypoTestX] Backend: GeminiBackend
+# [HypoTestX] Routing -> test='two_sample_ttest', confidence=0.95
+# [HypoTestX] Reasoning: Two groups (M/F) compared on a numeric column
 ```
 
 ---
 
-## 🔧 API Reference
+## API Reference
 
-### Main Interface
+### `analyze()` — Natural Language Entry Point
 
-#### `test(hypothesis, data=None, **kwargs)`
-Natural language hypothesis testing interface.
-
-**Parameters:**
-- `hypothesis` (str): Natural language hypothesis statement
-- `data` (DataFrame, optional): Data for analysis
-- `**kwargs`: Additional test parameters
-
-**Returns:**
-- `HypoResult`: Comprehensive result object
-
-#### `HypoResult` Object
 ```python
-result.test_name          # Name of statistical test performed
-result.statistic          # Test statistic value
-result.p_value           # p-value
-result.effect_size       # Effect size (Cohen's d, etc.)
-result.confidence_interval  # Confidence interval
-result.is_significant    # Boolean significance at alpha level
-result.assumptions_met   # Dict of assumption check results
-result.summary()         # Human-readable summary
-result.to_dict()         # Dictionary representation
+hx.analyze(df, question, backend=None, alpha=0.05, verbose=False, **kwargs)
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `df` | `DataFrame` | pandas or polars DataFrame |
+| `question` | `str` | Plain-English hypothesis question |
+| `backend` | `str \| LLMBackend \| callable \| None` | LLM to use (default: regex fallback) |
+| `alpha` | `float` | Significance level (default `0.05`) |
+| `verbose` | `bool` | Print routing info to stdout |
+| `api_key` | `str` | API key forwarded to backend constructor |
+| `model` | `str` | Model name forwarded to backend constructor |
+
+Returns a `HypoResult` object.
+
+### `get_backend()` — Backend Factory
+
+```python
+b = hx.get_backend("groq", api_key="gsk_...")   # by string
+b = hx.get_backend(hx.OllamaBackend(model="phi4"))  # pass instance
+b = hx.get_backend(my_callable)                 # wrap a callable
+
+routing = b.route("Do males earn more?", hx.build_schema(df))
+print(routing.test, routing.group_column, routing.value_column)
+```
+
+### `HypoResult` Object
+
+```python
+result.test_name            # 'Welch\'s t-test (unequal variances)'
+result.statistic            # test statistic value
+result.p_value              # p-value
+result.effect_size          # Cohen's d / r / eta^2 / Cramer's V
+result.effect_size_name     # 'Cohen\'s d', 'Pearson r', ...
+result.confidence_interval  # (lower, upper)
+result.degrees_of_freedom   # df
+result.sample_sizes         # list of group sizes
+result.is_significant       # bool — p_value < alpha
+result.effect_magnitude     # 'small' | 'medium' | 'large'
+result.interpretation       # plain-English interpretation string
+result.alpha                # significance level used
+result.alternative          # 'two-sided' | 'greater' | 'less'
+result.summary()            # formatted multi-line summary string
+result.to_dict()            # dict representation
 ```
 
 ### Direct Test Functions
 
 #### t-tests
 ```python
-htx.ttest_1samp(data, mu=0, alpha=0.05, alternative='two-sided')
-htx.ttest_2samp(group1, group2, alpha=0.05, alternative='two-sided', equal_var=True)
-htx.ttest_paired(before, after, alpha=0.05, alternative='two-sided')
-htx.welch_ttest(group1, group2, alpha=0.05, alternative='two-sided')
+hx.ttest_1samp(data, mu=0, alpha=0.05, alternative='two-sided')
+hx.ttest_2samp(group1, group2, alpha=0.05, alternative='two-sided', equal_var=True)
+hx.ttest_paired(before, after, alpha=0.05, alternative='two-sided')
+hx.welch_ttest(group1, group2, alpha=0.05, alternative='two-sided')
+hx.anova_1way(*groups, alpha=0.05)
 ```
 
-#### Non-parametric tests
+#### Non-parametric
 ```python
-htx.mannwhitney(group1, group2, alpha=0.05, alternative='two-sided')
-htx.wilcoxon(differences, alpha=0.05, alternative='two-sided')
-htx.kruskal(*groups, alpha=0.05)
+hx.mannwhitney(group1, group2, alpha=0.05, alternative='two-sided')
+hx.wilcoxon(x, y=None, mu=0, alpha=0.05, alternative='two-sided')
+hx.kruskal(*groups, alpha=0.05)
 ```
 
-#### Categorical tests
+#### Categorical
 ```python
-htx.chi2_test(observed, alpha=0.05)
-htx.fisher_exact(table, alpha=0.05, alternative='two-sided')
+hx.chi2_test(observed, alpha=0.05)                          # 2-D table or 1-D GoF
+hx.fisher_exact(table, alpha=0.05, alternative='two-sided') # 2x2 only
+```
+
+#### Correlation
+```python
+hx.pearson(x, y, alpha=0.05, alternative='two-sided')
+hx.spearman(x, y, alpha=0.05, alternative='two-sided')
+hx.pointbiserial(continuous, binary, alpha=0.05)
+```
+
+### Backend Classes (for plug-in use)
+
+```python
+from hypotestx import (
+    LLMBackend,          # Abstract base — subclass to create your own
+    CallableBackend,     # Wraps any callable(messages) -> str
+    FallbackBackend,     # Built-in regex router (default)
+    OllamaBackend,       # Local Ollama
+    OpenAICompatBackend, # OpenAI / Groq / Together / Mistral / Azure
+    GeminiBackend,       # Google Gemini
+    HuggingFaceBackend,  # HuggingFace Inference API or local transformers
+)
+```
+
+Creating a custom backend:
+
+```python
+class MyBackend(hx.LLMBackend):
+    name = "my_backend"
+
+    def chat(self, messages: list[dict]) -> str:
+        """
+        messages: [{"role": "system", "content": ...},
+                   {"role": "user",   "content": ...}]
+        Return a JSON string matching the RoutingResult schema.
+        """
+        prompt = messages[-1]["content"]
+        return call_my_llm_api(prompt)   # must return JSON string
+
+result = hx.analyze(df, "Is salary different by gender?",
+                    backend=MyBackend())
 ```
 
 ---
@@ -379,23 +563,55 @@ htx.generate_report(results,
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Design Philosophy
-- **Modular**: Each component works independently
-- **Extensible**: Easy to add new tests and features
-- **Educational**: Transparent implementations
-- **Robust**: Comprehensive error handling and validation
+- **Zero mandatory dependencies** — pure Python stdlib for math and HTTP
+- **Plug-in LLMs** — swap backends without changing test logic
+- **Modular** — each component works independently
+- **Transparent** — read the source to see exactly how every test works
 
-### Core Components
+### Package Layout
 ```
 hypotestx/
-├── core/           # Parser, engine, result classes
-├── math/           # Pure Python mathematical operations
+├── core/
+│   ├── engine.py          # analyze() dispatcher
+│   ├── result.py          # HypoResult dataclass
+│   ├── parser.py          # Legacy regex NL parser
+│   ├── assumptions.py     # Shapiro-Wilk, Levene, Bartlett, ...
+│   └── llm/               # LLM sub-package
+│       ├── base.py        # LLMBackend ABC, RoutingResult, SchemaInfo
+│       ├── prompts.py     # System prompt, schema builder, user prompt
+│       └── backends/
+│           ├── fallback.py       # Regex router (default, zero deps)
+│           ├── ollama.py         # Local Ollama
+│           ├── openai_compat.py  # OpenAI / Groq / Together / Mistral
+│           ├── gemini.py         # Google Gemini
+│           └── huggingface.py    # HF Inference API + local transformers
+├── math/           # Pure Python: distributions, statistics, linear algebra
 ├── tests/          # Statistical test implementations
-├── utils/          # Data utilities and validation
-├── domains/        # Domain-specific test suites
-└── education/      # Educational content and explanations
+├── stats/          # Descriptive stats, bootstrap, inference
+├── power/          # Power analysis and sample size
+├── reporting/      # APA reports, formatters
+└── utils/          # Data utilities and validation
+```
+
+### How `analyze()` Works
+```
+analyze(df, question, backend)  ←  user calls this
+    │
+    ├─ build_schema(df)         → SchemaInfo(columns, dtypes, numerics, categoricals)
+    │
+    ├─ backend.route(question, schema)
+    │       │
+    │       ├─ FallbackBackend  → regex pattern matching (instant, offline)
+    │       ├─ GeminiBackend    → Gemini REST API (JSON response)
+    │       ├─ OllamaBackend    → local HTTP to Ollama server
+    │       └─ (any LLMBackend) → JSON parsed into RoutingResult
+    │
+    └─ _dispatch(routing, df)   → extracts columns, calls test function
+            │
+            └─ HypoResult       ← returned to caller
 ```
 
 ### Mathematical Implementation
@@ -499,50 +715,48 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-### Version 0.2.0 (Q3 2024)
-- ✅ Non-parametric tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis)
-- ✅ Chi-square and Fisher's exact tests
-- ✅ Basic visualization suite
-- ✅ Assumption checking automation
+### Version 0.1.0 (Released)
+- Complete parametric test suite (t-tests, ANOVA)
+- Non-parametric tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis)
+- Categorical tests (Chi-square, Fisher's exact)
+- Correlation tests (Pearson, Spearman, point-biserial)
+- Pure Python math core (distributions, special functions)
+- Assumption checking (Shapiro-Wilk, Levene, Bartlett, Jarque-Bera)
+- Power analysis and sample size calculation
+- Bootstrap and permutation tests
+- APA-style reporting
+- **LLM-powered `analyze()` interface with plug-in backend system**
+  - Built-in regex fallback (zero deps, offline)
+  - Ollama backend (local, free)
+  - Gemini backend (free tier)
+  - Groq / OpenAI / Together / Mistral / Azure backends
+  - HuggingFace Inference API + local transformers
+  - Custom backend API (`LLMBackend` subclass or callable)
 
-### Version 0.3.0 (Q4 2024)
-- 🔄 ANOVA family (one-way, two-way, repeated measures)
-- 🔄 Regression-based tests
-- 🔄 Bootstrap and permutation methods
-- 🔄 Effect size calculations
+### Version 0.2.0 (Planned)
+- Two-way ANOVA and repeated-measures ANOVA
+- Regression-based tests (linear, logistic)
+- Automatic assumption-driven test selection
+- Streaming LLM responses for verbose mode
+- `analyze()` result explains *why* a test was chosen
 
-### Version 0.4.0 (Q1 2025)
-- 🔄 Bayesian alternatives
-- 🔄 Time series testing
-- 🔄 Meta-analysis tools
-- 🔄 Advanced visualization dashboard
+### Version 0.3.0 (Planned)
+- Bayesian alternatives (Bayesian t-test, Bayes factor)
+- Time series stationarity and change-point tests
+- Meta-analysis tools
+- Interactive Jupyter widgets for results
 
-### Version 1.0.0 (Q2 2025)
-- 🔄 Complete statistical toolkit
-- 🔄 Domain-specific packages
-- 🔄 Publication-ready reporting
-- 🔄 Comprehensive documentation
-
-### Future Vision
-- 🌟 **AI-powered analysis**: LLM integration for hypothesis generation
-- 🌟 **Interactive tutorials**: Built-in statistical education
-- 🌟 **Cloud deployment**: Web-based analysis platform
-- 🌟 **R integration**: Seamless interoperability
-
----
-
-## 🏆 Awards & Recognition
-
-- 🥇 **PyPI Featured Package** (2024)
-- 🎖️ **NumFOCUS Affiliated Project** (2024)
-- ⭐ **GitHub Trending** #1 in Statistics (July 2024)
-- 📰 **Featured in Journal of Statistical Software** (2024)
+### Version 1.0.0 (Planned)
+- Domain-specific packages (clinical, A/B testing, finance)
+- Publication-ready PDF/HTML reporting
+- Full documentation site
+- R interoperability layer
 
 ---
 
-## 📞 Support & Community
+## Support & Community
 
 ### Getting Help
 - 💬 [GitHub Discussions](https://github.com/yourusername/hypotestx/discussions)
@@ -596,10 +810,11 @@ Special thanks to all [contributors](https://github.com/yourusername/hypotestx/g
 - **scikit-learn's** consistent API design
 
 ### Dependencies
-While our mathematical core is pure Python, we gratefully acknowledge:
-- **spaCy** for advanced natural language processing
-- **NLTK** for linguistic data processing
-- **matplotlib/plotly** for visualization (optional)
+The mathematical core and all LLM HTTP calls are pure Python stdlib.
+Optional extras that unlock additional functionality:
+- **Ollama** desktop app — for the local `OllamaBackend`
+- **transformers + torch** — for `HuggingFaceBackend` local inference mode
+- **matplotlib** — for visualization helpers
 
 ---
 
@@ -608,12 +823,12 @@ While our mathematical core is pure Python, we gratefully acknowledge:
 If you use HypoTestX in your research, please cite:
 
 ```bibtex
-@software{hypotestx2024,
+@software{hypotestx2026,
   author = {Your Name and Contributors},
   title = {HypoTestX: Natural Language Hypothesis Testing for Python},
   url = {https://github.com/yourusername/hypotestx},
   version = {0.1.0},
-  year = {2024}
+  year = {2026}
 }
 ```
 
