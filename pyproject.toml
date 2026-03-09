@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypotestx"
-version = "1.0.3"
+version = "1.0.4"
 description = "Natural language hypothesis testing and comprehensive statistics library"
 authors = [
     {name = "Ankit"}
@@ -55,10 +55,9 @@ visualization = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/hypotestx"
-Documentation = "https://hypotestx.readthedocs.io/"
-Repository = "https://github.com/yourusername/hypotestx"
-"Bug Tracker" = "https://github.com/yourusername/hypotestx/issues"
+Homepage = "https://github.com/Ankit-Anand123/hypotestx"
+Repository = "https://github.com/Ankit-Anand123/hypotestx"
+"Bug Tracker" = "https://github.com/Ankit-Anand123/hypotestx/issues"
 
 [project.scripts]
 hypotestx = "hypotestx.cli:main"
