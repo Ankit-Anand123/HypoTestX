@@ -3,6 +3,7 @@ from ..math.statistics import mean, std, variance
 from ..math.distributions import Normal, StudentT
 from ..math.basic import sqrt, abs_value
 from ..core.result import HypoResult
+from ..core.validators import validate_data, validate_alpha, validate_alternative, validate_two_groups, validate_paired_data
 
 def one_sample_ttest(
     data: List[float],
@@ -22,9 +23,11 @@ def one_sample_ttest(
     Returns:
         HypoResult object with test results
     """
-    if len(data) < 2:
-        raise ValueError("Need at least 2 data points for t-test")
-    
+    # Validate input
+    data = validate_data(data, min_size=2, name="data")
+    validate_alpha(alpha)
+    validate_alternative(alternative)
+
     n = len(data)
     sample_mean = mean(data)
     sample_std = std(data, ddof=1)
@@ -123,9 +126,11 @@ def two_sample_ttest(
     Returns:
         HypoResult object with test results
     """
-    if len(group1) < 2 or len(group2) < 2:
-        raise ValueError("Need at least 2 data points in each group")
-    
+    # Validate input
+    group1, group2 = validate_two_groups(group1, group2, min_size=2)
+    validate_alpha(alpha)
+    validate_alternative(alternative)
+
     n1, n2 = len(group1), len(group2)
     mean1, mean2 = mean(group1), mean(group2)
     var1, var2 = variance(group1, ddof=1), variance(group2, ddof=1)
@@ -242,7 +247,11 @@ def paired_ttest(
     
     if len(before) < 2:
         raise ValueError("Need at least 2 paired observations")
-    
+    # Validate input
+    before, after = validate_paired_data(before, after)
+    validate_alpha(alpha)
+    validate_alternative(alternative)
+
     # Calculate differences
     differences = [after[i] - before[i] for i in range(len(before))]
     
@@ -281,3 +290,114 @@ def paired_ttest(
     result.interpretation = f"The paired t-test is {significance} (p = {result.p_value:.4f}). {direction}"
     
     return result
+
+
+# ---------------------------------------------------------------------------
+# One-Way ANOVA
+# ---------------------------------------------------------------------------
+
+def anova_one_way(
+    *groups: List[float],
+    alpha: float = 0.05,
+) -> HypoResult:
+    """
+    One-way analysis of variance (ANOVA).
+
+    Tests whether the population means of three or more independent groups are
+    equal.  Assumes normality and homogeneity of variance within groups.
+
+    Args:
+        *groups: Two or more group samples
+        alpha: Significance level
+
+    Returns:
+        HypoResult with statistic=F, effect_size=eta-squared
+
+    Examples:
+        >>> result = anova_one_way([5, 6, 7], [8, 9, 10], [3, 4, 5])
+        >>> print(result.summary())
+    """
+    from ..math.distributions import F as FDist
+    from ..core.validators import validate_groups
+
+    groups = validate_groups(*groups, min_size=2, min_groups=2)
+    k = len(groups)
+    group_sizes = [len(g) for g in groups]
+    N = sum(group_sizes)
+
+    group_means = [mean(g) for g in groups]
+    grand_mean = sum(v for g in groups for v in g) / N
+
+    # Between-group SS
+    SS_between = sum(group_sizes[i] * (group_means[i] - grand_mean) ** 2 for i in range(k))
+    df_between = k - 1
+
+    # Within-group SS
+    SS_within = sum(
+        sum((x - group_means[i]) ** 2 for x in groups[i])
+        for i in range(k)
+    )
+    df_within = N - k
+
+    if df_within <= 0:
+        raise ValueError("Insufficient degrees of freedom within groups; add more observations")
+
+    MS_between = SS_between / df_between
+    MS_within  = SS_within / df_within
+
+    if MS_within == 0:
+        F_stat = float("inf")
+        p_value = 0.0
+    else:
+        F_stat = MS_between / MS_within
+        f_dist = FDist(df_between, df_within)
+        p_value = max(0.0, min(1.0, 1 - f_dist.cdf(F_stat)))
+
+    # Eta-squared
+    SS_total = SS_between + SS_within
+    eta_sq = SS_between / SS_total if SS_total > 0 else 0.0
+
+    # Omega-squared (less biased estimate)
+    omega_sq = (SS_between - df_between * MS_within) / (SS_total + MS_within)
+    omega_sq = max(0.0, omega_sq)
+
+    data_summary = {
+        "k_groups": k,
+        "group_sizes": group_sizes,
+        "group_means": group_means,
+        "grand_mean": grand_mean,
+        "SS_between": SS_between,
+        "SS_within": SS_within,
+        "SS_total": SS_total,
+        "MS_between": MS_between,
+        "MS_within": MS_within,
+        "df_between": df_between,
+        "df_within": df_within,
+        "omega_squared": omega_sq,
+    }
+
+    significance = "significant" if p_value < alpha else "not significant"
+    interpretation = (
+        f"One-way ANOVA is {significance} "
+        f"(F({df_between}, {df_within}) = {F_stat:.4f}, p = {p_value:.4f}). "
+        + (
+            "At least one group mean differs significantly from the others."
+            if p_value < alpha
+            else "No significant difference in means across groups."
+        )
+    )
+
+    return HypoResult(
+        test_name="One-Way ANOVA",
+        statistic=F_stat,
+        p_value=p_value,
+        effect_size=eta_sq,
+        effect_size_name="eta-squared",
+        confidence_interval=None,
+        degrees_of_freedom=(df_between, df_within),
+        sample_sizes=tuple(group_sizes),
+        alpha=alpha,
+        alternative="two-sided",
+        interpretation=interpretation,
+        data_summary=data_summary,
+    )

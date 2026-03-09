@@ -23,23 +23,48 @@ def sqrt(x: float, precision: float = 1e-10) -> float:
             return better_guess
         guess = better_guess
 
-def exp(x: float, terms: int = 50) -> float:
-    """Exponential function using Taylor series"""
-    if x > 700:  # Prevent overflow
+def exp(x: float, terms: int = 100) -> float:
+    """Exponential function using Taylor series.
+
+    For negative *x* we use the identity exp(-x) = 1/exp(x) to avoid
+    catastrophic cancellation in the alternating Taylor series.
+    """
+    if x > 700:   # Prevent overflow
         return float('inf')
     if x < -700:
         return 0.0
-    
+
+    # Negative argument: compute exp(-x) via reciprocal to stay numerically stable
+    if x < 0.0:
+        return 1.0 / exp(-x)
+
+    # Range-reduce: exp(x) = exp(k + r) = e^k * exp(r)  with 0 <= r < 1
+    # We use repeated squaring for the integer part.
+    k = int(x)
+    r = x - k           # fractional remainder in [0, 1)
+
+    # Taylor series for exp(r), 0 <= r < 1 — converges very quickly
     result = 1.0
     term = 1.0
-    
     for i in range(1, terms):
-        term *= x / i
+        term *= r / i
         result += term
-        if abs_value(term) < 1e-15:
+        if abs_value(term) < 1e-17:
             break
-    
-    return result
+
+    # Multiply by e^k using integer repeated multiplication of e
+    # e ≈ 2.718281828459045235360287
+    E = 2.718281828459045235360287
+    ek = 1.0
+    base = E
+    n = k
+    while n > 0:
+        if n & 1:
+            ek *= base
+        base *= base
+        n >>= 1
+
+    return result * ek
 
 def ln(x: float, precision: float = 1e-10) -> float:
     """Natural logarithm using Newton's method"""

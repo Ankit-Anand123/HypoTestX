@@ -43,51 +43,49 @@ class Normal(Distribution):
         if not 0 < p < 1:
             raise ValueError("Probability must be between 0 and 1")
         
-        # Approximate inverse using Beasley-Springer-Moro algorithm
+        # Approximate inverse using A&S 26.2.22 + Newton refinement
         return self._inverse_normal_cdf(p)
     
     def _inverse_normal_cdf(self, p: float) -> float:
-        """Approximate inverse normal CDF"""
-        # Beasley-Springer-Moro approximation
-        a0 = 2.50662823884
-        a1 = -18.61500062529
-        a2 = 41.39119773534
-        a3 = -25.44106049637
-        
-        b1 = -8.47351093090
-        b2 = 23.08336743743
-        b3 = -21.06224101826
-        b4 = 3.13082909833
-        
-        c0 = 0.3374754822726147
-        c1 = 0.9761690190917186
-        c2 = 0.1607979714918209
-        c3 = 0.0276438810333863
-        c4 = 0.0038405729373609
-        c5 = 0.0003951896511919
-        c6 = 0.0000321767881768
-        c7 = 0.0000002888167364
-        c8 = 0.0000003960315187
-        
-        if p < 0.5:
-            # Use the fact that inverse_normal_cdf(p) = -inverse_normal_cdf(1-p)
-            return -self._inverse_normal_cdf(1 - p)
-        
-        # For p >= 0.5
+        """
+        Inverse normal CDF.
+
+        Uses A&S 26.2.22 rational approximation followed by Newton-Raphson
+        refinement for high accuracy.  Returns x such that Phi(x) = p.
+        """
         if p == 0.5:
             return 0.0
-        
-        r = sqrt(-2 * ln(1 - p))
-        
-        if r <= 5.0:
-            r -= 1.6
-            result = (((a3 * r + a2) * r + a1) * r + a0) / \
-                    ((((b4 * r + b3) * r + b2) * r + b1) * r + 1)
-        else:
-            r -= 5.0
-            result = (((((((c8 * r + c7) * r + c6) * r + c5) * r + c4) * r + c3) * r + c2) * r + c1) * r + c0
-        
-        return self.mu + self.sigma * result
+
+        # Exploit symmetry
+        if p < 0.5:
+            return -self._inverse_normal_cdf(1.0 - p)
+
+        # For p > 0.5: compute positive quantile from upper-tail prob q = 1-p
+        q = 1.0 - p
+        t = sqrt(-2.0 * ln(q))
+
+        # A&S 26.2.22 Horner evaluation
+        # Numerator:  C(t) = c0 + c1*t + c2*t^2  = ((c2*t + c1)*t + c0)
+        # Denominator: D(t) = 1 + d1*t + d2*t^2 + d3*t^3 = (((d3*t+d2)*t+d1)*t+1)
+        c0, c1, c2 = 2.515517, 0.802853, 0.010328
+        d1, d2, d3 = 1.432788, 0.189269, 0.001308
+
+        num = (c2 * t + c1) * t + c0
+        den = ((d3 * t + d2) * t + d1) * t + 1.0
+        x   = t - num / den       # ≥ 0 for p ≥ 0.5, max error ~4.5e-4
+
+        # Newton–Raphson refinement (3 iterations, quadratic convergence)
+        for _ in range(5):
+            fx  = self.cdf(x) - p
+            dfx = self.pdf(x)
+            if dfx == 0.0:
+                break
+            delta = fx / dfx
+            x    -= delta
+            if abs(delta) < 1e-12:
+                break
+
+        return self.mu + self.sigma * x
 
 class StudentT(Distribution):
     """Student's t-distribution"""

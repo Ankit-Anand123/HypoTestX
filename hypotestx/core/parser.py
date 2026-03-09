@@ -2,29 +2,44 @@
 Advanced natural language hypothesis parsing using NLP libraries
 """
 import re
-import spacy
-import nltk
 from typing import Dict, List, Optional, Tuple, Any, Union
 from dataclasses import dataclass
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
 
-# Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+# ── Optional NLP dependencies ─────────────────────────────────────────────────
+# spaCy and NLTK are optional; the library degrades gracefully to a simple
+# regex-based parser when they are not installed.
 
 try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+    import spacy as _spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    _spacy = None           # type: ignore[assignment]
+    SPACY_AVAILABLE = False
 
 try:
-    nltk.data.find('corpora/wordnet')
-except LookupError:
-    nltk.download('wordnet')
+    import nltk as _nltk
+    from nltk.corpus import stopwords as _stopwords
+    from nltk.tokenize import word_tokenize as _word_tokenize
+    from nltk.stem import WordNetLemmatizer as _WordNetLemmatizer
+    NLTK_AVAILABLE = True
+
+    # Download required NLTK data silently
+    for _resource, _path in [
+        ('punkt',     'tokenizers/punkt'),
+        ('stopwords', 'corpora/stopwords'),
+        ('wordnet',   'corpora/wordnet'),
+    ]:
+        try:
+            _nltk.data.find(_path)
+        except LookupError:
+            _nltk.download(_resource, quiet=True)
+
+except ImportError:
+    _nltk = None             # type: ignore[assignment]
+    _stopwords = None        # type: ignore[assignment]
+    _word_tokenize = None    # type: ignore[assignment]
+    _WordNetLemmatizer = None  # type: ignore[assignment]
+    NLTK_AVAILABLE = False
 
 @dataclass
 class ParsedHypothesis:
@@ -46,18 +61,21 @@ class AdvancedHypothesisParser:
     """Advanced natural language hypothesis parser using NLP libraries"""
     
     def __init__(self, model_name: str = "en_core_web_sm"):
-        # Initialize spaCy
-        try:
-            self.nlp = spacy.load(model_name)
-        except OSError:
-            print(f"SpaCy model '{model_name}' not found. Please install it with:")
-            print(f"python -m spacy download {model_name}")
-            # Fallback to basic parser
-            self.nlp = None
+        # Initialize spaCy (optional)
+        self.nlp = None
+        if SPACY_AVAILABLE:
+            try:
+                self.nlp = _spacy.load(model_name)
+            except OSError:
+                print(f"SpaCy model '{model_name}' not found. Run: python -m spacy download {model_name}")
         
-        # Initialize NLTK components
-        self.lemmatizer = WordNetLemmatizer()
-        self.stop_words = set(stopwords.words('english'))
+        # Initialize NLTK components (optional)
+        if NLTK_AVAILABLE:
+            self.lemmatizer = _WordNetLemmatizer()
+            self.stop_words = set(_stopwords.words('english'))
+        else:
+            self.lemmatizer = None
+            self.stop_words = set()
         
         # Statistical test patterns with confidence scores
         self.test_patterns = {
@@ -388,14 +406,15 @@ class AdvancedHypothesisParser:
                 if col.lower() in text:
                     variables.append(col)
             
-            # Fuzzy matching using lemmatization
-            text_tokens = set(self.lemmatizer.lemmatize(word.lower()) 
-                            for word in word_tokenize(text) 
-                            if word.lower() not in self.stop_words)
-            
-            for col in column_names:
-                col_tokens = set(self.lemmatizer.lemmatize(word.lower()) 
-                               for word in word_tokenize(col))
+            # Fuzzy matching using lemmatization (only when NLTK is available)
+            if NLTK_AVAILABLE and self.lemmatizer is not None:
+                text_tokens = set(self.lemmatizer.lemmatize(word.lower())
+                                  for word in _word_tokenize(text)
+                                  if word.lower() not in self.stop_words)
+
+                for col in column_names:
+                    col_tokens = set(self.lemmatizer.lemmatize(word.lower())
+                                     for word in _word_tokenize(col))
                 
                 if col_tokens & text_tokens:  # If there's any overlap
                     if col not in variables:
@@ -455,8 +474,9 @@ class AdvancedHypothesisParser:
                         score += 2
                 
                 # Token overlap
-                col_tokens = set(word.lower() for word in word_tokenize(col))
-                text_tokens = set(word.lower() for word in word_tokenize(text))
+                _tokenize = _word_tokenize if NLTK_AVAILABLE else str.split
+                col_tokens = set(word.lower() for word in _tokenize(col))
+                text_tokens = set(word.lower() for word in _tokenize(text))
                 overlap = len(col_tokens & text_tokens)
                 score += overlap
                 
@@ -472,8 +492,9 @@ class AdvancedHypothesisParser:
                         score += 2
                 
                 # Token overlap
-                col_tokens = set(word.lower() for word in word_tokenize(col))
-                text_tokens = set(word.lower() for word in word_tokenize(text))
+                _tokenize = _word_tokenize if NLTK_AVAILABLE else str.split
+                col_tokens = set(word.lower() for word in _tokenize(col))
+                text_tokens = set(word.lower() for word in _tokenize(text))
                 overlap = len(col_tokens & text_tokens)
                 score += overlap
                 
@@ -565,10 +586,72 @@ class SimpleHypothesisParser:
         }
     
     def parse(self, hypothesis_text: str, data=None) -> ParsedHypothesis:
-        """Simple parsing for basic cases"""
-        # Implementation similar to original but returning ParsedHypothesis
-        # This serves as a fallback when advanced NLP fails
-        pass
+        """Simple regex-based parsing — used as fallback when advanced NLP is unavailable"""
+        text = hypothesis_text.lower().strip()
+
+        # Determine comparison type and extract group names from text patterns
+        comparison_type = "different"
+        group_values = None
+
+        for comp_type, patterns in self.comparison_patterns.items():
+            for pattern in patterns:
+                match = re.search(pattern, text)
+                if match:
+                    comparison_type = comp_type
+                    groups = match.groups()
+                    if len(groups) >= 2:
+                        group_values = (groups[0].strip(), groups[1].strip())
+                    break
+            if group_values is not None:
+                break
+
+        # Determine test type based on keyword heuristics
+        test_type = "two_sample_ttest"  # sensible default
+
+        if re.search(r'\b(?:equal to|different from|greater than|less than)\b.*\d', text):
+            test_type = "one_sample_ttest"
+        elif re.search(r'\b(?:before|after|pre|post|paired|repeated)\b', text):
+            test_type = "paired_ttest"
+        elif re.search(r'\b(?:association|independent|categorical|frequency|contingency)\b', text):
+            test_type = "chi_square"
+        elif re.search(r'\b(?:correlat|related|relationship|linear)\b', text):
+            test_type = "correlation"
+        elif re.search(r'\b(?:multiple groups|across groups|more than two|several groups|\banova\b)\b', text):
+            test_type = "anova"
+
+        # Tail from comparison type
+        tail_map = {
+            "greater": "greater",
+            "less": "less",
+            "different": "two-sided",
+            "equal": "two-sided",
+        }
+        tail = tail_map.get(comparison_type, "two-sided")
+
+        # Attempt to infer columns from data dtypes
+        group_column, value_column = None, None
+        if data is not None and hasattr(data, "columns") and hasattr(data, "dtypes"):
+            for col in data.columns:
+                dtype = str(data[col].dtype)
+                if dtype in ("object", "category", "bool") and group_column is None:
+                    group_column = col
+                elif dtype in ("int64", "float64", "int32", "float32") and value_column is None:
+                    value_column = col
+
+        return ParsedHypothesis(
+            test_type=test_type,
+            group_column=group_column,
+            value_column=value_column,
+            group_values=group_values,
+            comparison_type=comparison_type,
+            tail=tail,
+            confidence_level=0.05,
+            variables=[],
+            raw_text=hypothesis_text,
+            entities={},
+            intent=f"hypothesis_testing_{test_type}",
+            confidence_score=0.5,
+        )
 
 # Factory function to choose parser
 def create_parser(advanced: bool = True) -> Union[AdvancedHypothesisParser, SimpleHypothesisParser]:
@@ -582,3 +665,28 @@ def create_parser(advanced: bool = True) -> Union[AdvancedHypothesisParser, Simp
             return SimpleHypothesisParser()
     else:
         return SimpleHypothesisParser()
+
+
+def parse_hypothesis(hypothesis: str, data=None) -> ParsedHypothesis:
+    """
+    Parse a natural language hypothesis string into a structured ParsedHypothesis.
+
+    This is a module-level convenience wrapper around create_parser().parse().
+    The advanced NLP parser (spaCy + NLTK) is tried first; if unavailable the
+    simple regex-based parser is used automatically.
+
+    Args:
+        hypothesis: Natural language hypothesis statement
+                    e.g. "Do males spend more than females on average?"
+        data: Optional pandas DataFrame used for column-name inference
+
+    Returns:
+        ParsedHypothesis dataclass with test_type, tail, column info, etc.
+
+    Examples:
+        >>> parsed = parse_hypothesis("Is the mean different from 100?", data=df)
+        >>> print(parsed.test_type)   # 'one_sample_ttest'
+        >>> print(parsed.tail)        # 'two-sided'
+    """
+    parser = create_parser(advanced=True)
+    return parser.parse(hypothesis, data)

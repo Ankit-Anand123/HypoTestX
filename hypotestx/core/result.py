@@ -46,34 +46,69 @@ class HypoResult:
     
     @property
     def effect_magnitude(self) -> str:
-        """Interpret effect size magnitude"""
+        """Interpret effect size magnitude using Cohen's conventions for the appropriate measure."""
         if self.effect_size is None:
-            return "Not calculated"
-        
-        # Cohen's conventions (can be customized per test type)
-        if self.effect_size_name == "Cohen's d":
-            if abs(self.effect_size) < 0.2:
-                return "negligible"
-            elif abs(self.effect_size) < 0.5:
-                return "small"
-            elif abs(self.effect_size) < 0.8:
-                return "medium"
-            else:
-                return "large"
-        
-        return "Unknown scale"
+            return "not calculated"
+
+        es = abs(self.effect_size)
+        name = (self.effect_size_name or "").lower()
+
+        # Cohen's d (t-tests)
+        if "cohen" in name or name == "d":
+            if es < 0.2:   return "negligible"
+            if es < 0.5:   return "small"
+            if es < 0.8:   return "medium"
+            return "large"
+
+        # Pearson / Spearman r, rank-biserial r, point-biserial r
+        if name in ("r", "rank-biserial r", "point-biserial r", "spearman rho"):
+            if es < 0.10:  return "negligible"
+            if es < 0.30:  return "small"
+            if es < 0.50:  return "medium"
+            return "large"
+
+        # Cramer's V / phi (chi-square family)
+        if name in ("cramer's v", "phi", "cohens w", "cohen's w", "w"):
+            if es < 0.10:  return "negligible"
+            if es < 0.30:  return "small"
+            if es < 0.50:  return "medium"
+            return "large"
+
+        # Eta-squared / partial eta-squared (ANOVA / Kruskal-Wallis)
+        if "eta" in name:
+            if es < 0.01:  return "negligible"
+            if es < 0.06:  return "small"
+            if es < 0.14:  return "medium"
+            return "large"
+
+        # Omega-squared
+        if "omega" in name:
+            if es < 0.01:  return "negligible"
+            if es < 0.06:  return "small"
+            if es < 0.14:  return "medium"
+            return "large"
+
+        # Odds ratio — not on a linear scale; give qualitative label
+        if "odds" in name:
+            if es < 1.5:   return "negligible"
+            if es < 2.5:   return "small"
+            if es < 4.0:   return "medium"
+            return "large"
+
+        return "unknown scale"
     
     def summary(self, verbose: bool = False) -> str:
         """Human-readable summary of results"""
         lines = []
         
         # Header
-        lines.append(f"🧪 {self.test_name}")
-        lines.append("=" * (len(self.test_name) + 3))
+        header = f"[ {self.test_name} ]"
+        lines.append(header)
+        lines.append("=" * len(header))
         
         # Main results
-        significance = "Significant" if self.is_significant else "Not significant"
-        lines.append(f"Result: {significance} (α = {self.alpha})")
+        significance = "SIGNIFICANT" if self.is_significant else "Not significant"
+        lines.append(f"Result: {significance} (alpha = {self.alpha})")
         lines.append(f"Test statistic: {self.statistic:.4f}")
         lines.append(f"p-value: {format_p_value(self.p_value)}")
         
