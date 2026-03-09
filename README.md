@@ -670,10 +670,6 @@ pytest
 ### Full Documentation
 > Documentation site is not yet available. In the meantime, refer to this README, the inline docstrings, and the example notebooks below.
 
-### Jupyter Notebooks
-- [Getting Started Tutorial](examples/notebooks/getting_started.ipynb)
-- [Advanced Statistical Analysis](examples/notebooks/advanced_features.ipynb)
-- [Real-World Case Studies](examples/notebooks/real_world_cases.ipynb)
 
 ---
 
@@ -809,7 +805,7 @@ If you use HypoTestX in your research, please cite:
   title = {HypoTestX: Natural Language Hypothesis Testing for Python},
   url = {https://github.com/Ankit-Anand123/HypoTestX},
   version = {1.0.0},
-  year = {2025}
+  year = {2026}
 }
 ```
 
