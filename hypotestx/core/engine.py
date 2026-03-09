@@ -389,7 +389,16 @@ def _resolve_xy_columns(routing, df: Any, test_name: str):
 #  Public entry-point                                                          #
 # --------------------------------------------------------------------------- #
 
-_BACKEND_KWARGS = frozenset({"api_key", "model", "host", "token", "use_local"})
+_BACKEND_KWARGS = frozenset({
+    # universal
+    "api_key", "model", "timeout", "temperature", "max_tokens",
+    # Ollama
+    "host", "options",
+    # HuggingFace
+    "token", "use_local", "device", "load_kwargs",
+    # OpenAI-compatible (groq / openai / together / mistral / perplexity)
+    "base_url", "provider", "extra_headers",
+})
 
 
 def analyze(
@@ -424,8 +433,53 @@ def analyze(
         - Any ``LLMBackend`` subclass instance.
         - Any ``callable(messages) -> str``.
 
-        Pass extra backend constructor kwargs (``api_key=``, ``model=``,
-        ``host=``, ...) directly to ``analyze()``.
+        Pass any backend constructor kwargs directly to ``analyze()``:
+
+        .. list-table::
+           :header-rows: 1
+
+           * - kwarg
+             - backends
+             - notes
+           * - ``api_key``
+             - gemini, openai, groq, together, mistral, perplexity
+             - required for cloud providers
+           * - ``model``
+             - all
+             - override the default model name/ID
+           * - ``timeout``
+             - all (default: 60 s)
+             - HTTP / inference timeout in seconds
+           * - ``temperature``
+             - gemini, openai-compat, huggingface
+             - sampling temperature (0 = deterministic)
+           * - ``max_tokens``
+             - gemini, openai-compat, huggingface
+             - max tokens in the LLM response
+           * - ``host``
+             - ollama
+             - server URL (default ``http://localhost:11434``)
+           * - ``options``
+             - ollama
+             - dict forwarded to Ollama model options
+           * - ``token``
+             - huggingface
+             - HF access token for Inference API
+           * - ``use_local``
+             - huggingface
+             - load model locally via ``transformers``
+           * - ``device``
+             - huggingface local
+             - ``"cpu"`` or ``"cuda"``
+           * - ``base_url``
+             - openai-compat
+             - override API base URL (e.g. Azure endpoint)
+           * - ``provider``
+             - openai-compat
+             - shorthand: ``"groq"``, ``"together"``, ``"mistral"``, etc.
+           * - ``extra_headers``
+             - openai-compat
+             - additional HTTP headers dict
     alpha : float
         Significance level (default 0.05).
     verbose : bool
@@ -439,19 +493,71 @@ def analyze(
 
     Examples
     --------
-    >>> import hypotestx as hx
-    >>> import pandas as pd
-    >>> df = pd.DataFrame({
-    ...     "gender": ["M","M","M","F","F","F"] * 10,
-    ...     "salary": [70, 75, 80, 60, 65, 70] * 10,
-    ... })
+    >>> # Regex fallback — no API key, works offline
     >>> result = hx.analyze(df, "Do males earn more than females?")
     >>> print(result.summary())
 
-    >>> # With Gemini (free tier – requires API key)
+    >>> # Gemini — free tier; pick any gemini-2.x model
     >>> result = hx.analyze(
     ...     df, "Is there a salary difference between genders?",
     ...     backend="gemini", api_key="AIza...",
+    ...     model="gemini-2.0-flash",  # or "gemini-2.0-flash-lite"
+    ...     temperature=0.0, max_tokens=512, timeout=30,
+    ... )
+
+    >>> # Groq — free tier, very fast
+    >>> result = hx.analyze(
+    ...     df, "Do departments differ in performance?",
+    ...     backend="groq", api_key="gsk_...",
+    ...     model="llama-3.3-70b-versatile",  # default; override freely
+    ...     temperature=0.0, max_tokens=512,
+    ... )
+
+    >>> # OpenAI
+    >>> result = hx.analyze(
+    ...     df, "Is salary correlated with tenure?",
+    ...     backend="openai", api_key="sk-...",
+    ...     model="gpt-4o-mini",  # or "gpt-4o"
+    ...     temperature=0.0, max_tokens=256,
+    ... )
+
+    >>> # Together AI / Mistral / Perplexity (OpenAI-compatible)
+    >>> result = hx.analyze(
+    ...     df, "Compare groups A and B",
+    ...     backend="together", api_key="...",
+    ...     model="meta-llama/Llama-3-70b-chat-hf",
+    ... )
+
+    >>> # Custom OpenAI-compatible endpoint (Azure, vLLM, LiteLLM, …)
+    >>> result = hx.analyze(
+    ...     df, "Compare groups",
+    ...     backend="openai", api_key="...",
+    ...     base_url="https://my-az-endpoint.openai.azure.com/openai/v1",
+    ...     model="gpt-4o",
+    ... )
+
+    >>> # Ollama — local, no API key
+    >>> result = hx.analyze(
+    ...     df, "Compare groups A and B",
+    ...     backend="ollama",
+    ...     model="mistral",       # default: llama3.2
+    ...     host="http://localhost:11434",
+    ...     timeout=120,
+    ... )
+
+    >>> # HuggingFace Inference API (cloud, free tier)
+    >>> result = hx.analyze(
+    ...     df, "Are gender and department related?",
+    ...     backend="huggingface", token="hf_...",
+    ...     model="HuggingFaceH4/zephyr-7b-beta",
+    ... )
+
+    >>> # HuggingFace local (requires: pip install transformers torch)
+    >>> result = hx.analyze(
+    ...     df, "Is income different across regions?",
+    ...     backend="huggingface",
+    ...     model="microsoft/Phi-3.5-mini-instruct",
+    ...     use_local=True, device="cuda",  # or "cpu"
     ... )
 
     >>> # Bring your own callable

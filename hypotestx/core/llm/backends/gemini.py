@@ -1,7 +1,7 @@
 """
 Google Gemini backend.
 
-Free tier:  Gemini 1.5 Flash — 1 million token context, ~1500 requests/day free.
+Free tier:  Gemini 2.0 Flash — 1 million token context, 1500 requests/day free.
 Get a key:  https://aistudio.google.com/app/apikey (no credit card needed)
 
 Usage:
@@ -10,12 +10,11 @@ Usage:
     # Choose a specific model
     result = hx.analyze(df, "...",
                          backend=GeminiBackend(api_key="AIza...",
-                                               model="gemini-2.0-flash"))
+                                               model="gemini-2.0-flash-lite"))
 
-Available free models:
-    gemini-1.5-flash          very fast, excellent for routing
-    gemini-1.5-flash-8b       smallest / fastest
-    gemini-2.0-flash          latest, best quality
+Available free models (as of 2026):
+    gemini-2.0-flash          fast, high quality — recommended default
+    gemini-2.0-flash-lite     smallest / fastest / lowest quota cost
     gemini-1.5-pro            most capable (lower free quota)
 """
 from __future__ import annotations
@@ -28,8 +27,8 @@ from typing import Dict, List, Optional
 from ..base import LLMBackend
 
 
-_DEFAULT_MODEL   = "gemini-1.5-flash"
-_BASE_URL        = "https://generativelanguage.googleapis.com/v1beta/models"
+_DEFAULT_MODEL   = "gemini-2.0-flash"
+_BASE_URL        = "https://generativelanguage.googleapis.com/v1/models"
 
 
 class GeminiBackend(LLMBackend):
@@ -40,7 +39,7 @@ class GeminiBackend(LLMBackend):
 
     Args:
         api_key:     Google AI Studio API key.
-        model:       Model name (default: ``gemini-1.5-flash``).
+        model:       Model name (default: ``gemini-2.0-flash``).
         timeout:     HTTP timeout seconds (default: 60).
         temperature: Sampling temperature (default: 0).
         max_tokens:  Maximum output tokens (default: 512).

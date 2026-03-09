@@ -47,22 +47,54 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     """
     Resolve *spec* to a concrete ``LLMBackend`` instance.
 
-    *spec* can be:
+    Parameters
+    ----------
+    spec : str | LLMBackend | callable | None
+        - ``None`` / ``"fallback"``  → FallbackBackend (regex, offline)
+        - ``"gemini"``               → GeminiBackend
+        - ``"ollama"``               → OllamaBackend
+        - ``"openai"``               → OpenAICompatBackend(provider="openai")
+        - ``"groq"``                 → OpenAICompatBackend(provider="groq")
+        - ``"together"``             → OpenAICompatBackend(provider="together")
+        - ``"mistral"``              → OpenAICompatBackend(provider="mistral")
+        - ``"perplexity"``           → OpenAICompatBackend(provider="perplexity")
+        - ``"huggingface"``          → HuggingFaceBackend
+        - An ``LLMBackend`` instance → returned as-is
+        - A ``callable``             → wrapped in CallableBackend
 
-    - ``None``              → FallbackBackend (no LLM, regex routing)
-    - ``"ollama"``          → OllamaBackend(**kwargs)
-    - ``"groq"``            → OpenAICompatBackend(provider="groq", **kwargs)
-    - ``"openai"``          → OpenAICompatBackend(provider="openai", **kwargs)
-    - ``"together"``        → OpenAICompatBackend(provider="together", **kwargs)
-    - ``"perplexity"``      → OpenAICompatBackend(provider="perplexity", **kwargs)
-    - ``"mistral"``         → OpenAICompatBackend(provider="mistral", **kwargs)
-    - ``"gemini"``          → GeminiBackend(**kwargs)
-    - ``"huggingface"``     → HuggingFaceBackend(**kwargs)
-    - ``"fallback"``        → FallbackBackend()
-    - An ``LLMBackend`` instance  → returned as-is
-    - A ``callable``        → wrapped in CallableBackend
+    **kwargs
+        Forwarded verbatim to the backend constructor.  Supported kwargs:
 
-    Extra keyword arguments are forwarded to the backend constructor.
+        +-----------------+--------------------------------------+------------------------+
+        | kwarg           | backends                             | default                |
+        +=================+======================================+========================+
+        | ``api_key``     | gemini, openai, groq, together, …   | —                      |
+        | ``model``       | all                                  | provider default       |
+        | ``timeout``     | all                                  | 60 s                   |
+        | ``temperature`` | gemini, openai-compat, huggingface  | 0.0                    |
+        | ``max_tokens``  | gemini, openai-compat, huggingface  | 512                    |
+        | ``host``        | ollama                               | localhost:11434        |
+        | ``options``     | ollama                               | {"temperature": 0}     |
+        | ``token``       | huggingface                          | —                      |
+        | ``use_local``   | huggingface                          | False                  |
+        | ``device``      | huggingface (local)                  | "cpu"                  |
+        | ``base_url``    | openai-compat                        | provider default       |
+        | ``provider``    | openai-compat                        | "openai"               |
+        | ``extra_headers``| openai-compat                       | None                   |
+        +-----------------+--------------------------------------+------------------------+
+
+    Examples
+    --------
+    >>> from hypotestx.core.llm import get_backend
+    >>> b = get_backend("gemini", api_key="AIza...", model="gemini-2.0-flash-lite")
+    >>> b = get_backend("groq",   api_key="gsk_...", model="llama-3.3-70b-versatile")
+    >>> b = get_backend("openai", api_key="sk-...",  model="gpt-4o", temperature=0.2)
+    >>> b = get_backend("ollama", model="mistral", host="http://localhost:11434")
+    >>> b = get_backend("huggingface", token="hf_...", model="HuggingFaceH4/zephyr-7b-beta")
+    >>> b = get_backend("huggingface", model="microsoft/Phi-3.5-mini-instruct",
+    ...                  use_local=True, device="cuda")
+    >>> b = get_backend("together", api_key="...", model="meta-llama/Llama-3-70b-chat-hf")
+    >>> b = get_backend("mistral",  api_key="...", model="mistral-large-latest")
     """
     if spec is None:
         return FallbackBackend()

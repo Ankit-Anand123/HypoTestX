@@ -36,17 +36,24 @@ print(result.summary())
 Swap in any LLM with a single keyword argument — no code changes:
 
 ```python
-# Google Gemini (free tier, 1500 req/day)
+# Google Gemini (free tier, 1500 req/day) — pick any gemini-2.x model
 result = hx.analyze(df, "Is age correlated with salary?",
-                    backend="gemini", api_key="AIza...")
+                    backend="gemini", api_key="AIza...",
+                    model="gemini-2.0-flash")   # or "gemini-2.0-flash-lite"
 
-# Groq (free tier, OpenAI-compatible)
+# Groq (free tier, OpenAI-compatible) — pick any supported model
 result = hx.analyze(df, "Is there an association between gender and dept?",
-                    backend="groq", api_key="gsk_...")
+                    backend="groq", api_key="gsk_...",
+                    model="llama-3.3-70b-versatile")
 
-# Local Ollama (completely offline)
+# OpenAI — specify model and token budget
+result = hx.analyze(df, "Do groups differ?",
+                    backend="openai", api_key="sk-...",
+                    model="gpt-4o-mini", temperature=0.0)
+
+# Local Ollama (completely offline) — choose any pulled model
 result = hx.analyze(df, "Compare satisfaction across regions?",
-                    backend="ollama")
+                    backend="ollama", model="mistral")
 
 # Bring your own callable
 result = hx.analyze(df, "Any question",
@@ -196,6 +203,8 @@ result = hx.analyze(
     "Is there a salary difference between engineering and sales departments?",
     backend="gemini",
     api_key="AIza...",
+    model="gemini-2.0-flash",   # or "gemini-2.0-flash-lite" for faster/cheaper
+    temperature=0.0,
 )
 print(result.summary())
 
@@ -205,6 +214,7 @@ result = hx.analyze(
     "Is employee satisfaction correlated with tenure?",
     backend="groq",
     api_key="gsk_...",
+    model="llama-3.3-70b-versatile",  # or "mixtral-8x7b-32768"
 )
 
 # Local Ollama (fully offline, no API key)
@@ -304,37 +314,86 @@ hx.analyze(df, "Compare before and after treatment")
 
 All backends require zero extra dependencies except where noted.
 
-| Backend string | Provider | Cost | Dependencies |
-|---|---|---|---|
-| `None` / `"fallback"` | Built-in regex router | Free, offline | None |
-| `"ollama"` | Local Ollama (llama3.2, phi4, …) | Free, offline | Ollama app |
-| `"gemini"` | Google Gemini 1.5 Flash | Free (1500 req/day) | None |
-| `"groq"` | Groq Cloud (llama3, mixtral, …) | Free tier | None |
-| `"openai"` | OpenAI GPT-4o / GPT-4o-mini | Paid | None |
-| `"together"` | Together AI | Free tier | None |
-| `"mistral"` | Mistral AI | Free tier | None |
-| `"huggingface"` | HF Inference API or local | Free tier / Local | `transformers` (local only) |
+| Backend string | Provider | Cost | Default model | Dependencies |
+|---|---|---|---|---|
+| `None` / `"fallback"` | Built-in regex router | Free, offline | — | None |
+| `"ollama"` | Local Ollama | Free, offline | `llama3.2` | Ollama app |
+| `"gemini"` | Google Gemini | Free (1500 req/day) | `gemini-2.0-flash` | None |
+| `"groq"` | Groq Cloud | Free tier | `llama-3.3-70b-versatile` | None |
+| `"openai"` | OpenAI | Paid | `gpt-4o-mini` | None |
+| `"together"` | Together AI | Free tier | `meta-llama/Llama-3-70b-chat-hf` | None |
+| `"mistral"` | Mistral AI | Free tier | `mistral-small-latest` | None |
+| `"perplexity"` | Perplexity AI | Free tier | `llama-3.1-sonar-small-128k-online` | None |
+| `"huggingface"` | HF Inference API or local | Free tier / Local | `zephyr-7b-beta` | `transformers` (local only) |
+
+All extra kwargs are passed directly to the backend constructor via `hx.analyze()`:
+
+| kwarg | backends | notes |
+|---|---|---|
+| `model` | all | override the default model name |
+| `temperature` | gemini, openai-compat, huggingface | sampling temperature (0 = deterministic) |
+| `max_tokens` | gemini, openai-compat, huggingface | max tokens in the LLM response |
+| `timeout` | all | HTTP timeout in seconds (default: 60) |
+| `host` | ollama | server URL (default `http://localhost:11434`) |
+| `options` | ollama | dict forwarded to Ollama model options |
+| `token` | huggingface | HF access token for Inference API |
+| `use_local` | huggingface | load model locally via `transformers` |
+| `device` | huggingface (local) | `"cpu"` or `"cuda"` |
+| `base_url` | openai-compat | override API base URL (e.g. Azure endpoint) |
+| `extra_headers` | openai-compat | additional HTTP headers dict |
 
 ```python
 import hypotestx as hx
 
+# --- Gemini (free tier) ---
+result = hx.analyze(df, "Is age correlated with salary?",
+                    backend="gemini", api_key="AIza...",
+                    model="gemini-2.0-flash",       # or "gemini-2.0-flash-lite"
+                    temperature=0.0, max_tokens=512)
+
+# --- Groq (free tier, very fast) ---
+result = hx.analyze(df, "Compare departments",
+                    backend="groq", api_key="gsk_...",
+                    model="llama-3.3-70b-versatile") # or "mixtral-8x7b-32768"
+
+# --- OpenAI ---
+result = hx.analyze(df, "Is salary correlated with tenure?",
+                    backend="openai", api_key="sk-...",
+                    model="gpt-4o-mini",             # or "gpt-4o"
+                    temperature=0.0, max_tokens=256)
+
+# --- Together AI / Mistral / Perplexity ---
+result = hx.analyze(df, "Do groups differ?",
+                    backend="together", api_key="...",
+                    model="meta-llama/Llama-3-70b-chat-hf")
+
+# --- Custom OpenAI-compatible endpoint (Azure, vLLM, LiteLLM, …) ---
+result = hx.analyze(df, "Compare groups",
+                    backend="openai", api_key="...",
+                    base_url="https://my-az.openai.azure.com/v1",
+                    model="gpt-4o")
+
 # --- Ollama (local, offline) ---
 result = hx.analyze(df, "Do males earn more?",
-                    backend="ollama", model="phi4")
+                    backend="ollama",
+                    model="mistral",                 # default: llama3.2
+                    host="http://localhost:11434", timeout=120)
 
-# --- Gemini free tier ---
-result = hx.analyze(df, "Is age correlated with salary?",
-                    backend="gemini", api_key="AIza...")
+# --- HuggingFace Inference API ---
+result = hx.analyze(df, "Are departments different?",
+                    backend="huggingface", token="hf_...",
+                    model="HuggingFaceH4/zephyr-7b-beta")
 
-# --- Groq free tier (very fast) ---
-result = hx.analyze(df, "Compare departments",
-                    backend="groq", api_key="gsk_...")
+# --- HuggingFace local (requires: pip install transformers torch) ---
+result = hx.analyze(df, "Is income different across regions?",
+                    backend="huggingface",
+                    model="microsoft/Phi-3.5-mini-instruct",
+                    use_local=True, device="cuda")   # or device="cpu"
 
 # --- Custom / plug-in backend ---
 class MyCompanyLLM(hx.LLMBackend):
     name = "my_llm"
     def chat(self, messages):
-        # messages is a list of {"role": ..., "content": ...} dicts
         return my_internal_api.complete(messages[-1]["content"])
 
 result = hx.analyze(df, "Is satisfaction higher in Q4?",
@@ -397,6 +456,7 @@ result = hx.permutation_test(group1, group2, n_permutations=10000)
 result = hx.analyze(
     df, "Is salary different between genders?",
     backend="gemini", api_key="AIza...",
+    model="gemini-2.0-flash",
     verbose=True,
 )
 # [HypoTestX] Schema: 500 rows, columns: ['gender', 'salary', 'age']

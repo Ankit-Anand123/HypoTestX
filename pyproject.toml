@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypotestx"
-version = "1.0.2"
+version = "1.0.3"
 description = "Natural language hypothesis testing and comprehensive statistics library"
 authors = [
     {name = "Ankit"}
