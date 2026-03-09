@@ -97,10 +97,14 @@ class FallbackBackend(LLMBackend):
             r.test = "two_sample_ttest"  # safest default
 
         # ── Detect direction ────────────────────────────────────────────
-        for direction, regex in _DIRECTION_KEYWORDS.items():
-            if re.search(regex, lower):
-                r.alternative = direction
-                break
+        # Skip for two-sample tests: group ordering is alphabetical (from
+        # sorted unique values), so "greater" / "less" would be misleading
+        # unless the first-mentioned group happens to be first alphabetically.
+        if r.test not in _TWO_SAMPLE_KEYS:
+            for direction, regex in _DIRECTION_KEYWORDS.items():
+                if re.search(regex, lower):
+                    r.alternative = direction
+                    break
 
         # ── Detect mu for one-sample ────────────────────────────────────
         if r.test == "one_sample_ttest":

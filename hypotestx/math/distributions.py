@@ -54,7 +54,7 @@ class Normal(Distribution):
         refinement for high accuracy.  Returns x such that Phi(x) = p.
         """
         if p == 0.5:
-            return 0.0
+            return self.mu
 
         # Exploit symmetry
         if p < 0.5:

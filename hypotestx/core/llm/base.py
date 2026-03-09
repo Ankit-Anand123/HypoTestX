@@ -56,7 +56,7 @@ class RoutingResult:
 
     # Test parameters
     alternative: str = "two-sided"     # "two-sided" | "greater" | "less"
-    alpha: float = 0.05
+    alpha: Optional[float] = None     # None means "use analyze()'s alpha"
     mu: Optional[float] = None         # hypothesised mean (one-sample t-test)
     equal_var: bool = False            # Student vs Welch
     correction: bool = True            # Yates correction for chi-square

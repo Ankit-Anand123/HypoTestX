@@ -291,7 +291,7 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
     if test in ("point_biserial", "point_biserial_correlation"):
         x_col, y_col = _resolve_xy_columns(routing, df, test_name=test)
         x = [float(v) for v in _col_to_list(df, x_col)]
-        y = [float(v) for v in _col_to_list(df, y_col)]
+        y = _col_to_list(df, y_col)  # binary col — no float() conversion
         return point_biserial_correlation(x, y, alpha=eff_alpha, alternative=alt)
 
     # ------------------------------------------------------------------ #
