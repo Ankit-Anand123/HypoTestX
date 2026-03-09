@@ -90,7 +90,7 @@ from .utils.preprocessing import (
     rank_transform, center, robust_scale,
 )
 
-__version__ = "1.0.1"
+__version__ = "1.0.5"
 __author__ = "Ankit"
 
 # ── LLM-powered natural language interface ───────────────────────────────────
