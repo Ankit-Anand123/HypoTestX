@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypotestx"
-version = "1.0.4"
+version = "1.0.5"
 description = "Natural language hypothesis testing and comprehensive statistics library"
 authors = [
     {name = "Ankit"}
@@ -49,9 +49,22 @@ docs = [
     "sphinx-rtd-theme>=1.0.0",
     "sphinx-autodoc-typehints>=1.12.0",
 ]
+# Optional: enables result.plot(), plot_result(), plot_distributions(),
+# plot_p_value(), and the embedded-chart path in generate_report() / export_html().
 visualization = [
     "matplotlib>=3.5.0",
     "plotly>=5.0.0",
+]
+# Optional: enables export_pdf() via weasyprint (HTML → PDF).
+reporting = [
+    "weasyprint>=53.0",
+]
+# Convenience: all optional extras
+all = [
+    "matplotlib>=3.5.0",
+    "plotly>=5.0.0",
+    "weasyprint>=53.0",
+    "pandas>=1.3.0",
 ]
 
 [project.urls]

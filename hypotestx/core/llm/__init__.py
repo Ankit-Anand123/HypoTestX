@@ -34,6 +34,7 @@ _STRING_MAP = {
     "together":     lambda **kw: OpenAICompatBackend(provider="together", **kw),
     "perplexity":   lambda **kw: OpenAICompatBackend(provider="perplexity", **kw),
     "mistral":      lambda **kw: OpenAICompatBackend(provider="mistral",  **kw),
+    "azure":        lambda **kw: OpenAICompatBackend(provider="azure",   **kw),
     "gemini":       GeminiBackend,
     "huggingface":  HuggingFaceBackend,
     "hf":           HuggingFaceBackend,
@@ -101,6 +102,12 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
 
     if isinstance(spec, LLMBackend):
         return spec
+
+    # Duck-type: accept any object that exposes a .route() method even if it
+    # doesn't formally inherit from LLMBackend (useful for testing stubs and
+    # third-party wrappers).
+    if hasattr(spec, "route") and callable(getattr(spec, "route")) and not isinstance(spec, type):
+        return spec  # type: ignore[return-value]
 
     if callable(spec) and not isinstance(spec, type):
         return CallableBackend(spec)

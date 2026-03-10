@@ -8,18 +8,35 @@ interface.  It:
 1. Resolves the backend (string shorthand → LLMBackend instance).
 2. Builds a ``SchemaInfo`` snapshot of the DataFrame.
 3. Asks the backend to parse the question into a ``RoutingResult``.
-4. Extracts the required columns / groups from the DataFrame.
-5. Calls the matching statistical test function.
-6. Returns a ``HypoResult``.
+4. Validates the routing result before dispatch.
+5. Extracts the required columns / groups from the DataFrame.
+6. Calls the matching statistical test function.
+7. Returns a ``HypoResult``.
 
 The dispatcher supports both pandas and polars DataFrames, and gracefully
 falls back to the regex-based ``FallbackBackend`` when no backend is given.
+
+Logging
+-------
+HypoTestX uses the standard ``logging`` module under the logger name
+``"hypotestx"``.  To enable debug output::
+
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+
+Or to get only HypoTestX messages::
+
+    logging.getLogger("hypotestx").setLevel(logging.DEBUG)
 """
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from .result import HypoResult
+from .exceptions import HypoTestXError
+
+_log = logging.getLogger("hypotestx")
 
 # --------------------------------------------------------------------------- #
 #  Internal helpers – DataFrame abstraction (pandas *or* polars, no import)   #
@@ -132,6 +149,125 @@ def _build_contingency_table(
 
 
 # --------------------------------------------------------------------------- #
+#  Routing validation helper                                                    #
+# --------------------------------------------------------------------------- #
+
+# Tests that need two explicit column specs (x_column + y_column OR
+# group_column + value_column).
+_TESTS_NEEDING_TWO_COLS = frozenset({
+    "two_sample_ttest", "student_ttest", "welch_ttest",
+    "mann_whitney", "mann_whitney_u",
+    "pearson", "pearson_correlation",
+    "spearman", "spearman_correlation",
+    "point_biserial", "point_biserial_correlation",
+    "chi_square", "chi_square_test", "chi2",
+    "fisher", "fisher_exact", "fisher_exact_test",
+})
+
+# Tests that need a group column + value column (at least 2 groups).
+_TESTS_NEEDING_GROUP_COL = frozenset({
+    "anova", "anova_one_way", "one_way_anova",
+    "kruskal_wallis", "kruskal",
+})
+
+# Tests that accept a single value column.
+_TESTS_NEEDING_ONE_COL = frozenset({
+    "one_sample_ttest",
+    "wilcoxon", "wilcoxon_signed_rank",
+})
+
+# Tests that explicitly need paired x/y columns.
+_TESTS_NEEDING_PAIRED = frozenset({
+    "paired_ttest",
+})
+
+
+def _validate_routing_columns(routing, df: Any, test: str) -> None:
+    """
+    Validate that the columns referred to by *routing* actually exist in *df*,
+    and that the minimum required fields are present for the resolved *test*.
+
+    Raises
+    ------
+    ValueError
+        With an actionable message when validation fails.
+    """
+    available = set(_column_names(df))
+
+    def _check_col(col, field_name):
+        if col and col not in available:
+            raise ValueError(
+                f"Routing produced {field_name}='{col}' but that column does "
+                f"not exist in the DataFrame.  "
+                f"Available columns: {sorted(available)}.  "
+                "Check column spelling or rephrase your question."
+            )
+
+    # Check all nominated columns actually exist
+    for attr, label in [
+        ("x_column",      "x_column"),
+        ("y_column",      "y_column"),
+        ("value_column",  "value_column"),
+        ("group_column",  "group_column"),
+    ]:
+        col = getattr(routing, attr, None)
+        if col:
+            _check_col(col, label)
+
+    # Per-test minimum-field checks
+    if test in _TESTS_NEEDING_PAIRED:
+        x = getattr(routing, "x_column", None)
+        y = getattr(routing, "y_column", None)
+        if not x or not y:
+            raise ValueError(
+                f"'{test}' requires both x_column and y_column in the routing "
+                f"result, but got x_column={x!r}, y_column={y!r}.  "
+                "Rephrase the question to name both columns explicitly, e.g. "
+                "'Is the before-score different from the after-score?'"
+            )
+
+    if test in _TESTS_NEEDING_TWO_COLS:
+        has_xy    = getattr(routing, "x_column", None) and getattr(routing, "y_column", None)
+        has_group = getattr(routing, "group_column", None) and getattr(routing, "value_column", None)
+        if not has_xy and not has_group:
+            raise ValueError(
+                f"'{test}' requires either (x_column + y_column) or "
+                f"(group_column + value_column) in the routing result.  "
+                f"Got: x_column={getattr(routing,'x_column',None)!r}, "
+                f"y_column={getattr(routing,'y_column',None)!r}, "
+                f"group_column={getattr(routing,'group_column',None)!r}, "
+                f"value_column={getattr(routing,'value_column',None)!r}.  "
+                "Rephrase the question to name the columns you want to test."
+            )
+
+    if test in _TESTS_NEEDING_GROUP_COL:
+        if not getattr(routing, "group_column", None) or not getattr(routing, "value_column", None):
+            raise ValueError(
+                f"'{test}' requires group_column and value_column in the routing "
+                f"result.  "
+                f"Got group_column={getattr(routing,'group_column',None)!r}, "
+                f"value_column={getattr(routing,'value_column',None)!r}.  "
+                "Rephrase the question to name the grouping column and the "
+                "numeric measurement column."
+            )
+
+    if test in _TESTS_NEEDING_ONE_COL:
+        col = (
+            getattr(routing, "value_column", None)
+            or getattr(routing, "x_column", None)
+        )
+        if not col:
+            raise ValueError(
+                f"'{test}' requires value_column (or x_column) in the routing "
+                "result but no column was identified.  "
+                "Rephrase the question to name the column to test, e.g. "
+                "'Is the mean of [column] different from 0?'"
+            )
+
+    _log.debug("Routing validation passed for test=%r", test)
+
+
+# --------------------------------------------------------------------------- #
 #  Dispatch table                                                               #
 # --------------------------------------------------------------------------- #
 
@@ -166,10 +302,21 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
     mu        = routing.mu if routing.mu is not None else 0.0
     equal_var = routing.equal_var if routing.equal_var is not None else True
 
+    _log.debug(
+        "Routing resolved: test=%r, alternative=%r, alpha=%s, confidence=%s",
+        test, alt, eff_alpha,
+        getattr(routing, "confidence", "n/a"),
+    )
+    if getattr(routing, "reasoning", None):
+        _log.debug("Routing reasoning: %s", routing.reasoning)
+
     if verbose:
-        print(f"[HypoTestX] Routing -> test={test!r}, confidence={routing.confidence:.2f}")
-        if routing.reasoning:
+        print(f"[HypoTestX] Routing -> test={test!r}, confidence={getattr(routing, 'confidence', 'n/a')}")
+        if getattr(routing, "reasoning", None):
             print(f"[HypoTestX] Reasoning: {routing.reasoning}")
+
+    # ── Validate that routing fields reflect the available DataFrame columns ─
+    _validate_routing_columns(routing, df, test)
 
     # ------------------------------------------------------------------ #
     # One-sample t-test                                                    #
@@ -396,8 +543,8 @@ _BACKEND_KWARGS = frozenset({
     "host", "options",
     # HuggingFace
     "token", "use_local", "device", "load_kwargs",
-    # OpenAI-compatible (groq / openai / together / mistral / perplexity)
-    "base_url", "provider", "extra_headers",
+    # OpenAI-compatible (groq / openai / together / mistral / perplexity / azure)
+    "base_url", "provider", "extra_headers", "api_version",
 })
 
 
@@ -568,12 +715,21 @@ def analyze(
     """
     from .llm import get_backend, build_schema
 
-    # Separate backend-constructor kwargs from test kwargs
+    # Separate backend-constructor kwargs from test kwargs.
+    # ``backend_options`` is an explicit passthrough dict for backend-specific
+    # settings that are not in the standard whitelist (e.g. Azure-specific
+    # options, custom proxy headers, etc.).
+    backend_options: dict = kwargs.pop("backend_options", {}) or {}
     backend_kwargs = {k: v for k, v in kwargs.items() if k in _BACKEND_KWARGS}
+    backend_kwargs.update(backend_options)  # backend_options takes precedence
 
     backend_instance = get_backend(backend, **backend_kwargs)
 
     schema = build_schema(df)
+
+    _log.info("analyze() called: question=%r, backend=%s, rows=%s",
+              question, type(backend_instance).__name__, schema.n_rows)
+    _log.debug("Schema columns: %s", schema.columns)
 
     if verbose:
         print(f"[HypoTestX] Schema: {schema.n_rows} rows, "
@@ -582,5 +738,7 @@ def analyze(
         print(f"[HypoTestX] Question: {question!r}")
 
     routing = backend_instance.route(question, schema)
+
+    _log.debug("Raw routing result: %r", routing)
 
     return _dispatch(routing, df, alpha=alpha, verbose=verbose)

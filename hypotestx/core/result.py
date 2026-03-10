@@ -197,3 +197,27 @@ class HypoResult:
     def __repr__(self) -> str:
         """Detailed representation"""
         return f"HypoResult(test='{self.test_name}', statistic={self.statistic:.4f}, p_value={self.p_value:.6f})"
+
+    def plot(self, kind: str = "auto"):
+        """
+        Visualise this result.
+
+        Delegates to :func:`hypotestx.explore.visualize.plot_result`.
+
+        Parameters
+        ----------
+        kind : str
+            ``"auto"`` (default), ``"p_value"``, ``"bar"``, ``"box"``.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+
+        Raises
+        ------
+        ImportError
+            If matplotlib is not installed.  Install with
+            ``pip install matplotlib`` or ``pip install hypotestx[visualization]``.
+        """
+        from ..explore.visualize import plot_result
+        return plot_result(self, kind=kind)

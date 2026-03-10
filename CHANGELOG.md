@@ -6,6 +6,53 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.5] — 2026-03-10
+
+### Added
+- **Visualization** — `visualize.py` fully implemented (was a stub):
+  - `plot_result(result, kind)` — auto-selects bar or p-value curve
+  - `plot_distributions(groups, labels, kind)` — box / bar / violin charts
+  - `plot_p_value(p_value, alpha, ...)` — null distribution with rejection regions
+  - `generate_report(result, path, fmt)` — HTML, text, and PDF (weasyprint) reports
+  - `result.plot()` delegation method on `HypoResult`
+  - All helpers gracefully raise `ImportError` with install hint when `matplotlib` is absent
+- **Azure OpenAI backend** — `OpenAICompatBackend` now fully supports Azure:
+  - Auto-detected via `provider="azure"` or by URL containing `.openai.azure.com`
+  - Correct Azure URL: `{base_url}/openai/deployments/{model}/chat/completions?api-version=...`
+  - Uses `api-key` header (not `Authorization: Bearer ...`)
+  - `"azure"` shorthand added to `get_backend()` factory
+  - `api_version` parameter (default `"2024-02-01"`)
+- **`backend_options` passthrough** — `analyze()` now accepts a `backend_options` dict
+  for provider-specific kwargs not covered by the standard whitelist
+- **`export_html()` and `export_pdf()`** — new exporters in `reporting/generator.py`
+  delegating to `generate_report()`; both re-exported from the top-level `hypotestx` namespace
+- **Routing validation** — `_validate_routing_columns()` checks required column fields
+  per test type and raises a descriptive `ValueError` with actionable guidance before dispatch
+- **Structured logging** — `logging.getLogger("hypotestx")` used throughout `engine.py`;
+  set to `DEBUG` level to trace routing and backend calls; silent by default
+- **Duck-typed backend acceptance** — `get_backend()` now accepts any object with a callable
+  `.route()` method, enabling lightweight stubs and third-party wrappers without formal
+  `LLMBackend` inheritance
+- **`reporting` and `all` optional extras** in `pyproject.toml`:
+  - `reporting` — `weasyprint>=53.0` for PDF export
+  - `all` — convenience extra that pulls in all optional deps
+- **Expanded test suite** — 532 tests passing (up from 483); 1 intentional skip:
+  - `tests/test_reporting/test_visualize.py` — 17 visualization tests
+    (12 are `skipUnless(matplotlib)`, all pass when matplotlib is installed)
+  - `tests/test_core/test_azure_backend.py` — 17 Azure backend tests
+  - Edge-case tests added to `test_parametric.py`: zero-variance, empty, single-element groups
+- **Security & API Key Best Practices** section added to README
+
+### Fixed
+- **Welch's t-test / Student's t-test** — division-by-zero when one or both groups have zero
+  variance (constant data); raises `ValueError` with a clear diagnostic message
+- **Azure backend** — previously used `Authorization: Bearer ...` header and the standard
+  `/chat/completions` endpoint; now uses the correct Azure deployment URL and `api-key` header
+- **README** — visualization section corrected to show real implemented APIs; removed
+  references to unimplemented stubs (`plot_effect_size`, `plot_assumptions`)
+
+---
+
 ## [1.0.0] — 2026-03-09
 
 ### Added

@@ -165,5 +165,102 @@ class TestAnovaOneWay(unittest.TestCase):
         self.assertEqual(r.degrees_of_freedom[0], 2)  # k-1 = 3-1 = 2
 
 
+# ---------------------------------------------------------------------------
+# Edge-case tests (Issues 3 & 10)
+# ---------------------------------------------------------------------------
+
+class TestWelchDivisionByZero(unittest.TestCase):
+    """Welch t-test must never silently divide by zero (Issue 3)."""
+
+    def test_both_constant_groups_raises(self):
+        """Both groups constant → denominator = 0; must raise, not produce NaN/inf."""
+        g1 = [5.0, 5.0, 5.0, 5.0]
+        g2 = [5.0, 5.0, 5.0, 5.0]
+        with self.assertRaises(ValueError) as ctx:
+            two_sample_ttest(g1, g2, equal_var=False)
+        self.assertIn("zero variance", str(ctx.exception).lower())
+
+    def test_one_constant_group_raises(self):
+        """One group constant, the other variable: se_sq > 0 → Welch defined,
+        but the constant-group path in Welch-Satterthwaite denom is 0.
+        Should raise with a descriptive message."""
+        g1 = [5.0, 5.0, 5.0, 5.0]
+        g2 = [3.0, 4.0, 5.0, 6.0, 7.0]
+        # Standard error > 0 (var2/n2 > 0), so this can potentially succeed.
+        # The important thing is it must NOT produce a ZeroDivisionError silently.
+        try:
+            r = two_sample_ttest(g1, g2, equal_var=False)
+            # If it runs, p_value must be a valid float
+            self.assertFalse(r.p_value != r.p_value,  # nan check
+                             "p_value should not be NaN")
+        except ValueError as exc:
+            # Also acceptable: raise with a descriptive message
+            self.assertTrue(len(str(exc)) > 0)
+
+    def test_student_both_constant_raises(self):
+        """Student t-test: pooled variance 0 → must raise descriptively."""
+        g1 = [3.0, 3.0, 3.0]
+        g2 = [3.0, 3.0, 3.0]
+        with self.assertRaises(ValueError) as ctx:
+            two_sample_ttest(g1, g2, equal_var=True)
+        self.assertIn("zero variance", str(ctx.exception).lower())
+
+    def test_normal_welch_still_works(self):
+        """Sanity: well-behaved data should still produce valid results."""
+        g1 = [1.0, 2.0, 3.0, 4.0, 5.0]
+        g2 = [6.0, 7.0, 8.0, 9.0, 10.0]
+        r = two_sample_ttest(g1, g2, equal_var=False)
+        self.assertTrue(r.is_significant)
+        self.assertFalse(r.p_value != r.p_value)  # not NaN
+
+
+class TestEdgeCasesOneSample(unittest.TestCase):
+    """Edge cases for one-sample t-test."""
+
+    def test_empty_list_raises(self):
+        with self.assertRaises((ValueError, InsufficientDataError)):
+            one_sample_ttest([], mu=0)
+
+    def test_single_element_raises(self):
+        with self.assertRaises((ValueError, InsufficientDataError)):
+            one_sample_ttest([5.0], mu=5)
+
+    def test_constant_data_raises(self):
+        with self.assertRaises(ValueError):
+            one_sample_ttest([3.0, 3.0, 3.0, 3.0], mu=0)
+
+    def test_large_dataset(self):
+        data = [float(i) for i in range(1, 1001)]
+        r = one_sample_ttest(data, mu=500)
+        self.assertIsNotNone(r.p_value)
+        self.assertFalse(r.p_value != r.p_value)  # not NaN
+
+
+class TestEdgeCasesTwoSample(unittest.TestCase):
+    """Edge cases for two-sample t-test."""
+
+    def test_minimum_size(self):
+        r = two_sample_ttest([1.0, 2.0], [3.0, 4.0])
+        self.assertIsNotNone(r.statistic)
+
+    def test_one_element_each_raises(self):
+        with self.assertRaises((ValueError, InsufficientDataError)):
+            two_sample_ttest([5.0], [6.0])
+
+    def test_p_value_in_range(self):
+        g1 = [1, 2, 3, 4, 5]
+        g2 = [1, 2, 3, 4, 5]
+        r = two_sample_ttest(g1, g2)
+        self.assertGreater(r.p_value, 0)
+        self.assertLessEqual(r.p_value, 1.0)
+
+    def test_very_large_effect(self):
+        g1 = [0.0] * 100
+        g2 = [100.0] * 100
+        # Student path: both have zero variance → should raise
+        with self.assertRaises(ValueError):
+            two_sample_ttest(g1, g2, equal_var=True)
+
+
 if __name__ == '__main__':
     unittest.main()

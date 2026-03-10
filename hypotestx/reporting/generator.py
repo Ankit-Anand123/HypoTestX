@@ -357,6 +357,59 @@ def export_csv(
             f.write(sep.join(str(row[k]) for k in fieldnames) + "\n")
 
 
+# ---------------------------------------------------------------------------
+# HTML export
+# ---------------------------------------------------------------------------
+
+def export_html(
+    result: "HypoResult",
+    path: Optional[str] = None,
+) -> str:
+    """
+    Generate a self-contained HTML report for a single :class:`HypoResult`.
+
+    Delegates to :func:`hypotestx.explore.visualize.generate_report` so that
+    an embedded plot is included when matplotlib is installed.
+
+    Parameters
+    ----------
+    result : HypoResult
+    path   : optional output file path (e.g. ``"report.html"``).
+             If *None*, the HTML string is returned without saving.
+
+    Returns
+    -------
+    str : HTML content
+    """
+    from ..explore.visualize import generate_report
+    return generate_report(result, path=path, fmt="html")
+
+
+# ---------------------------------------------------------------------------
+# PDF export
+# ---------------------------------------------------------------------------
+
+def export_pdf(
+    result: "HypoResult",
+    path: str,
+) -> None:
+    """
+    Save a PDF report for a single :class:`HypoResult`.
+
+    Requires ``weasyprint``::
+
+        pip install weasyprint
+
+    Parameters
+    ----------
+    result : HypoResult
+    path   : output file path (e.g. ``"report.pdf"``).
+    """
+    from ..explore.visualize import generate_report
+    generate_report(result, path=path, fmt="pdf")
+
+
 __all__ = [
-    "apa_report", "text_report", "batch_report", "export_csv",
+    "apa_report", "text_report", "batch_report",
+    "export_csv", "export_html", "export_pdf",
 ]

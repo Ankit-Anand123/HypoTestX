@@ -74,9 +74,20 @@ from .stats.bootstrap import (
 )
 
 # ── Reporting ────────────────────────────────────────────────────────────────
-from .reporting.generator import apa_report, text_report, batch_report, export_csv
+from .reporting.generator import (
+    apa_report, text_report, batch_report,
+    export_csv, export_html, export_pdf,
+)
 from .reporting.formatters import (
     format_p, format_ci, format_effect, apa_stat, effect_interpretation_table,
+)
+
+# ── Visualization (optional — requires matplotlib) ───────────────────────────
+from .explore.visualize import (
+    plot_result,
+    plot_distributions,
+    plot_p_value,
+    generate_report,
 )
 
 # ── Utils ─────────────────────────────────────────────────────────────────────
@@ -90,7 +101,7 @@ from .utils.preprocessing import (
     rank_transform, center, robust_scale,
 )
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __author__ = "Ankit"
 
 # ── LLM-powered natural language interface ───────────────────────────────────

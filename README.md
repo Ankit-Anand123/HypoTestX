@@ -5,7 +5,8 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
-[![Coverage](https://img.shields.io/badge/coverage-64%25-yellowgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
+[![Tests](https://img.shields.io/badge/tests-532%20passing-brightgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
+[![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)](https://pypi.org/project/hypotestx/)
 
 > **Ask a statistical question in plain English. HypoTestX routes it to the right test — with or without an LLM.**
 
@@ -321,6 +322,7 @@ All backends require zero extra dependencies except where noted.
 | `"gemini"` | Google Gemini | Free (1500 req/day) | `gemini-2.0-flash` | None |
 | `"groq"` | Groq Cloud | Free tier | `llama-3.3-70b-versatile` | None |
 | `"openai"` | OpenAI | Paid | `gpt-4o-mini` | None |
+| `"azure"` | Azure OpenAI | Paid | *(deployment name)* | None |
 | `"together"` | Together AI | Free tier | `meta-llama/Llama-3-70b-chat-hf` | None |
 | `"mistral"` | Mistral AI | Free tier | `mistral-small-latest` | None |
 | `"perplexity"` | Perplexity AI | Free tier | `llama-3.1-sonar-small-128k-online` | None |
@@ -339,8 +341,10 @@ All extra kwargs are passed directly to the backend constructor via `hx.analyze(
 | `token` | huggingface | HF access token for Inference API |
 | `use_local` | huggingface | load model locally via `transformers` |
 | `device` | huggingface (local) | `"cpu"` or `"cuda"` |
-| `base_url` | openai-compat | override API base URL (e.g. Azure endpoint) |
+| `base_url` | openai-compat, azure | override API base URL |
+| `api_version` | azure | Azure API version (default: `"2024-02-01"`) |
 | `extra_headers` | openai-compat | additional HTTP headers dict |
+| `backend_options` | all | dict of extra kwargs passed through to the backend constructor (useful for provider-specific settings not in the table above) |
 
 ```python
 import hypotestx as hx
@@ -367,11 +371,22 @@ result = hx.analyze(df, "Do groups differ?",
                     backend="together", api_key="...",
                     model="meta-llama/Llama-3-70b-chat-hf")
 
-# --- Custom OpenAI-compatible endpoint (Azure, vLLM, LiteLLM, …) ---
+# --- Custom OpenAI-compatible endpoint (vLLM, LiteLLM, …) ---
 result = hx.analyze(df, "Compare groups",
                     backend="openai", api_key="...",
-                    base_url="https://my-az.openai.azure.com/v1",
+                    base_url="https://my-self-hosted-llm/v1",
                     model="gpt-4o")
+
+# --- Azure OpenAI ---
+# Requires: base_url (your resource endpoint) + model (deployment name)
+result = hx.analyze(
+    df, "Do departments differ in performance?",
+    backend="azure",
+    api_key="<azure-api-key>",            # the resource api-key, NOT a Bearer token
+    base_url="https://<resource>.openai.azure.com",
+    model="<deployment-name>",            # the deployment name, e.g. "gpt-4o"
+    api_version="2024-02-01",             # optional, defaults to "2024-02-01"
+)
 
 # --- Ollama (local, offline) ---
 result = hx.analyze(df, "Do males earn more?",
@@ -586,40 +601,74 @@ result = hx.analyze(df, "Is salary different by gender?",
 
 ## 🎨 Visualization
 
-### Basic Plots
-```python
-# Automatic visualization based on test type
-result = htx.test("Compare groups A and B", data=df)
-result.plot()  # Generates appropriate plot (box plot, histogram, etc.)
+Visualization helpers require **matplotlib** (optional):
+
+```bash
+pip install matplotlib
+# or
+pip install hypotestx[visualization]   # matplotlib + plotly
 ```
 
-### Custom Visualizations
+### Plot a test result
 ```python
-# Distribution comparison
-htx.plot_distributions(group1, group2, 
-                      labels=['Group A', 'Group B'],
-                      title='Distribution Comparison')
+import hypotestx as hx
 
-# Effect size visualization
-htx.plot_effect_size(result, 
-                    context='psychological research')
+result = hx.two_sample_ttest(group1, group2)
 
-# Assumption diagnostics
-htx.plot_assumptions(data, test_type='ttest')
+# Auto-selects the best chart type (bar for two-group, p-value curve otherwise)
+fig = result.plot()          # returns a matplotlib Figure
+fig.savefig("result.png")
+
+# Or call directly
+fig = hx.plot_result(result, kind="auto")    # "auto" | "p_value" | "bar"
 ```
 
-### Publication-Ready Output
+### Plot group distributions
 ```python
-# APA-style statistical reporting
-htx.generate_apa_report(results, 
-                       filename='statistical_analysis.pdf')
-
-# Custom report generation
-htx.generate_report(results, 
-                   template='academic',
-                   format='html',
-                   include_plots=True)
+fig = hx.plot_distributions(
+    [group1, group2],
+    labels=["Control", "Treatment"],
+    kind="box",    # "box" (default) | "bar" | "violin"
+    title="Group Comparison",
+)
+fig.show()
 ```
+
+### Visualise a p-value on the null distribution
+```python
+fig = hx.plot_p_value(
+    p_value=0.023,
+    alpha=0.05,
+    test_statistic=2.41,
+    alternative="two-sided",
+)
+```
+
+### Generate an HTML or text report
+```python
+# HTML (embedded chart if matplotlib is installed)
+html = hx.generate_report(result, fmt="html")
+
+# Save to file
+hx.generate_report(result, path="report.html", fmt="html")
+
+# PDF (requires: pip install weasyprint)
+hx.generate_report(result, path="report.pdf", fmt="pdf")
+
+# Plain text
+text = hx.generate_report(result, fmt="text")
+
+# Or use the reporting helpers directly
+from hypotestx.reporting.generator import export_html, export_pdf, export_csv
+
+export_html(result, path="report.html")
+export_pdf(result, path="report.pdf")       # requires weasyprint
+export_csv([result1, result2], path="results.csv")
+```
+
+> **Note:** `plot_effect_size()`, `plot_assumptions()`, and `generate_apa_report()` 
+> referenced in older docs are not yet implemented. Use `result.plot()`, 
+> `plot_distributions()`, and `apa_report()` instead.
 
 ---
 
@@ -681,6 +730,71 @@ All statistical computations are implemented from scratch using:
 - **Lanczos approximation** for gamma function
 - **Continued fractions** for special functions
 - **Numerical integration** for distribution functions
+
+---
+
+## 🔒 Security & API Key Best Practices
+
+**Never hard-code API keys in source code or commit them to version control.**
+
+### Recommended: Environment Variables
+
+Store keys in your shell environment or a `.env` file:
+
+```bash
+# ~/.bashrc / ~/.zshrc / .env (add .env to .gitignore!)
+export GEMINI_API_KEY="AIza..."
+export GROQ_API_KEY="gsk_..."
+export OPENAI_API_KEY="sk-..."
+export AZURE_OPENAI_API_KEY="<az-key>"
+export AZURE_OPENAI_ENDPOINT="https://<resource>.openai.azure.com"
+```
+
+Load them in Python:
+
+```python
+import os
+import hypotestx as hx
+
+# Read from environment — never from a string literal in code
+result = hx.analyze(
+    df,
+    "Is salary different by gender?",
+    backend="gemini",
+    api_key=os.environ["GEMINI_API_KEY"],
+)
+
+# Azure example using env vars
+result = hx.analyze(
+    df,
+    "Do departments differ?",
+    backend="azure",
+    api_key=os.environ["AZURE_OPENAI_API_KEY"],
+    base_url=os.environ["AZURE_OPENAI_ENDPOINT"],
+    model="my-deployment",
+)
+```
+
+With a `.env` file + `python-dotenv`:
+```bash
+pip install python-dotenv
+```
+```python
+from dotenv import load_dotenv
+load_dotenv()  # loads .env into os.environ
+
+import os, hypotestx as hx
+result = hx.analyze(df, "...", backend="groq",
+                    api_key=os.environ["GROQ_API_KEY"])
+```
+
+### Tips
+- Add `.env` to your `.gitignore` to prevent accidental key leaks.
+- Use secret managers (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager)
+  in production environments.
+- Rotate keys immediately if they are ever exposed.
+- Use the minimum required permission scope for each key.
+- The fallback backend (`backend=None`) requires no API key at all.
 
 ---
 
@@ -802,6 +916,23 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
 - Publication-ready PDF/HTML reporting
 - LLM-powered `analyze()` interface with plug-in backend system
 - Full test suite (483 tests passing)
+
+### Version 1.0.5 (Released — Current)
+- **Visualization** — `result.plot()`, `plot_result()`, `plot_distributions()`,
+  `plot_p_value()`, `generate_report()` (HTML/PDF/text); requires optional `matplotlib`
+- **Azure OpenAI** — `backend="azure"` with correct deployment URL, `api-key` header,
+  and `api_version` parameter
+- **HTML & PDF export** — `export_html()` and `export_pdf()` added to reporting module;
+  `weasyprint` optional dep for PDF
+- **Routing validation** — explicit column checks per test type with actionable error messages
+  before dispatch
+- **`backend_options` passthrough** — pass provider-specific kwargs via `backend_options={}`
+- **Structured logging** — `logging.getLogger("hypotestx")` throughout; zero noise by default
+- **Division-by-zero fix** — Welch and Student t-tests guard against zero-variance groups
+- **Duck-typed backends** — any object exposing `.route()` accepted by `get_backend()`
+- **Expanded test suite** — 532 tests passing (up from 483); new Azure and visualization
+  test files plus edge-case tests for parametric functions
+- **Security docs** — API key best-practices section in README
 
 ---
 

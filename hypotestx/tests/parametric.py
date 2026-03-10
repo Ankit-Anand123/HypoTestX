@@ -140,6 +140,12 @@ def two_sample_ttest(
     if equal_var:
         # Student's t-test (pooled variance)
         pooled_var = ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2)
+        if pooled_var == 0:
+            raise ValueError(
+                "Both groups have zero variance (constant data). "
+                "A t-test is undefined for constant groups. "
+                "Verify your data or use an exact test."
+            )
         standard_error = sqrt(pooled_var * (1/n1 + 1/n2))
         df = n1 + n2 - 2
         test_name = "Student's t-test (equal variances)"
@@ -147,13 +153,31 @@ def two_sample_ttest(
         cohens_d = (mean1 - mean2) / pooled_std
     else:
         # Welch's t-test (unequal variances)
-        standard_error = sqrt(var1/n1 + var2/n2)
+        se_sq = var1/n1 + var2/n2
+        if se_sq == 0:
+            raise ValueError(
+                "Both groups have zero variance (constant data). "
+                "A t-test is undefined for constant groups. "
+                "Verify your data or use an exact test."
+            )
+        standard_error = sqrt(se_sq)
         # Welch-Satterthwaite equation for degrees of freedom
-        numerator = (var1/n1 + var2/n2) ** 2
-        denominator = (var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1)
+        numerator = se_sq ** 2
+        denom1 = (var1/n1)**2/(n1-1) if n1 > 1 else 0.0
+        denom2 = (var2/n2)**2/(n2-1) if n2 > 1 else 0.0
+        denominator = denom1 + denom2
+        if denominator == 0:
+            # Both variances are zero — undefined df; raise a clear error
+            raise ValueError(
+                "Welch-Satterthwaite degrees of freedom are undefined because "
+                "both group variances are zero. "
+                "The data in one or both groups is constant. "
+                "Check your input data."
+            )
         df = numerator / denominator
         test_name = "Welch's t-test (unequal variances)"
-        cohens_d = (mean1 - mean2) / sqrt((var1 + var2) / 2)
+        pooled_sd = sqrt((var1 + var2) / 2)
+        cohens_d = (mean1 - mean2) / pooled_sd if pooled_sd > 0 else float('nan')
     
     # Calculate t-statistic
     t_stat = (mean1 - mean2) / standard_error
