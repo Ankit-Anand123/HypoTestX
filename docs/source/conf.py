@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = "HypoTestX"
 copyright = "2026, Ankit"
 author = "Ankit"
-release = "1.0.5"
-version = "1.0.5"
+release = "1.0.6"
+version = "1.0.6"
 
 # ---------------------------------------------------------------------------
 # Extensions

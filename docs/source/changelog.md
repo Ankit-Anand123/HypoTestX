@@ -5,6 +5,33 @@ All notable changes to HypoTestX are documented here.  Versions follow
 
 ---
 
+## v1.0.6 — Released (current)
+
+Routing transparency and documentation release.
+
+- **`warn_fallback` parameter** — `analyze()` now accepts `warn_fallback=True`
+  (default). Emits a `UserWarning` when the built-in regex fallback is used,
+  directing users to a real LLM backend for better accuracy. Suppress with
+  `warn_fallback=False`.
+- **`routing_confidence` field** — `HypoResult` now exposes `routing_confidence`
+  (float 0–1; `1.0` for LLM, `0.6` for fallback) and `routing_source`
+  (`"llm"` or `"fallback"`).
+- **Fallback warning in `summary()`** — when `routing_source == "fallback"`,
+  `result.summary()` appends a ⚠ notice advising the user to verify the
+  selected test.
+- **`routing_source` field on `RoutingResult`** — the internal dataclass now
+  carries `routing_source` alongside `confidence`.
+- **ReadTheDocs documentation** — full Sphinx/furo documentation site with
+  quickstart, user guide, API reference, and contributing guide.
+  Published at https://hypotestx.readthedocs.io
+- **`pyproject.toml` docs extras** updated to `sphinx>=7.0`, `furo>=2024.1.29`,
+  `myst-parser>=2.0`.
+- README: fixed roadmap versioning (linear v0.1.0 → v0.2.0 → v1.0.0 sequence);
+  added "Why HypoTestX?" comparison table; added `routing_confidence` and
+  `routing_source` to the HypoResult reference.
+
+---
+
 ## v0.1.0 — Released
 
 Initial public release.

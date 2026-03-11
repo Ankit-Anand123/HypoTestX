@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
 [![Tests](https://img.shields.io/badge/tests-532%20passing-brightgreen.svg)](https://github.com/Ankit-Anand123/HypoTestX)
-[![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)](https://pypi.org/project/hypotestx/)
+[![Version](https://img.shields.io/badge/version-1.0.6-blue.svg)](https://pypi.org/project/hypotestx/)
 
 > **Ask a statistical question in plain English. HypoTestX routes it to the right test — with or without an LLM.**
 
