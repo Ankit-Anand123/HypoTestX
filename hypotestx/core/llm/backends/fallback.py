@@ -81,8 +81,25 @@ class FallbackBackend(LLMBackend):
         """
         return ""
 
-    def route(self, question: str, schema: SchemaInfo, extra_context: str = "") -> RoutingResult:
+    def route(
+        self,
+        question: str,
+        schema: SchemaInfo,
+        extra_context: str = "",
+        warn_fallback: bool = True,
+    ) -> RoutingResult:
         """Bypass LLM and route via regex rules."""
+        import warnings
+        if warn_fallback:
+            warnings.warn(
+                f'\n[HypoTestX] Using built-in regex fallback to route: "{question}"\n'
+                '  Confidence is limited (~0.6). For better accuracy use a real LLM backend:\n'
+                '    hx.analyze(df, question, backend="gemini", api_key="...")\n'
+                '    hx.analyze(df, question, backend="ollama")  # free, offline\n'
+                '  Suppress this with: warn_fallback=False',
+                UserWarning,
+                stacklevel=4,
+            )
         r = RoutingResult()
         lower = question.lower()
 
@@ -159,6 +176,7 @@ class FallbackBackend(LLMBackend):
 
         r.reasoning = "(routed by regex fallback — no LLM used)"
         r.confidence = 0.6
+        r.routing_source = "fallback"
         return r
 
 

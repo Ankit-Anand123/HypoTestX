@@ -38,6 +38,9 @@ class HypoResult:
         self.alpha = alpha
         self.alternative = alternative
         self.extra_info = kwargs
+        # Routing metadata (populated by analyze())
+        self.routing_confidence: float = 1.0
+        self.routing_source: str = "llm"
     
     @property
     def is_significant(self) -> bool:
@@ -156,7 +159,14 @@ class HypoResult:
         # Interpretation
         if self.interpretation:
             lines.append(f"\nInterpretation:\n{self.interpretation}")
-        
+
+        # Routing fallback warning
+        if getattr(self, "routing_source", "llm") == "fallback":
+            lines.append(
+                "\n⚠  Routed via regex fallback (confidence=60%). "
+                "Verify the correct test was selected."
+            )
+
         return "\n".join(lines)
     
     def to_dict(self) -> Dict[str, Any]:

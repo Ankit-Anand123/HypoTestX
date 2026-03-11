@@ -64,7 +64,8 @@ class RoutingResult:
 
     # Meta
     reasoning: str = ""  # LLM's explanation of its choice
-    confidence: float = 1.0
+    confidence: float = 1.0           # 0.0–1.0; LLM = 1.0, regex fallback = 0.6
+    routing_source: str = "llm"       # "llm" or "fallback"
     raw_response: str = ""             # full LLM output for debugging
 
 
@@ -122,6 +123,7 @@ class LLMBackend(ABC):
         question: str,
         schema: "SchemaInfo",   # noqa: F821
         extra_context: str = "",
+        warn_fallback: bool = True,
     ) -> RoutingResult:
         """
         Build prompts, call the LLM, parse the JSON response.

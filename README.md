@@ -10,6 +10,23 @@
 
 > **Ask a statistical question in plain English. HypoTestX routes it to the right test — with or without an LLM.**
 
+---
+
+## Why HypoTestX?
+
+| Feature | scipy | Ask an LLM | HypoTestX |
+|---|---|---|---|
+| Natural language input | ❌ | ✅ | ✅ |
+| Structured result object | ❌ | ❌ | ✅ |
+| Effect size + CI included | Manual | ❌ | ✅ |
+| Reproducible / embeddable | ✅ | ❌ | ✅ |
+| Works offline | ✅ | ❌ | ✅ (fallback) |
+| Auto test selection | ❌ | ❌ | ✅ |
+
+With **scipy** you must already know which test to run, look up the right function, slice your data manually, and interpret raw numbers yourself. Asking a **chat LLM** gives you a plain-text answer that can't be embedded in code, audited, or replicated. **HypoTestX** fills the gap: give it a plain-English question and a DataFrame, and it returns a full structured `HypoResult` — statistic, p-value, effect size, confidence interval, and interpretation — every time, reproducibly.
+
+---
+
 HypoTestX gives you two ways to run hypothesis tests:
 
 - **Direct API** — call any of 12 statistical tests explicitly with full parameter control.
@@ -529,6 +546,8 @@ result.effect_magnitude     # 'small' | 'medium' | 'large'
 result.interpretation       # plain-English interpretation string
 result.alpha                # significance level used
 result.alternative          # 'two-sided' | 'greater' | 'less'
+result.routing_confidence   # float 0.0–1.0 (1.0 for LLM, 0.6 for fallback)
+result.routing_source       # 'llm' or 'fallback'
 result.summary()            # formatted multi-line summary string
 result.to_dict()            # dict representation
 ```
@@ -880,7 +899,7 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
 
 ## Roadmap
 
-### Version 0.1.0 (Released)
+### v0.1.0 (Released)
 - Complete parametric test suite (t-tests, ANOVA)
 - Non-parametric tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis)
 - Categorical tests (Chi-square, Fisher's exact)
@@ -890,6 +909,8 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
 - Power analysis and sample size calculation
 - Bootstrap and permutation tests
 - APA-style reporting
+
+### v0.2.0 (Released)
 - **LLM-powered `analyze()` interface with plug-in backend system**
   - Built-in regex fallback (zero deps, offline)
   - Ollama backend (local, free)
@@ -897,42 +918,28 @@ print(f"Results match: {abs(result_htx.p_value - result_scipy.pvalue) < 1e-10}")
   - Groq / OpenAI / Together / Mistral / Azure backends
   - HuggingFace Inference API + local transformers
   - Custom backend API (`LLMBackend` subclass or callable)
+- 483 tests passing
 
-### Version 0.2.0 (Planned)
+### v1.0.0 (Released)
+- Domain-specific packages (clinical, A/B testing, finance)
+- Publication-ready HTML/PDF reporting
+- Visualization — `result.plot()`, `plot_distributions()`, `plot_p_value()`
+- Azure OpenAI backend
+- Routing confidence warnings
+- 532 tests passing
+
+### v1.1.0 (Planned)
 - Two-way ANOVA and repeated-measures ANOVA
 - Regression-based tests (linear, logistic)
 - Automatic assumption-driven test selection
 - Streaming LLM responses for verbose mode
 - `analyze()` result explains *why* a test was chosen
 
-### Version 0.3.0 (Planned)
+### v1.2.0 (Planned)
 - Bayesian alternatives (Bayesian t-test, Bayes factor)
 - Time series stationarity and change-point tests
 - Meta-analysis tools
 - Interactive Jupyter widgets for results
-
-### Version 1.0.0 (Released)
-- Domain-specific packages (clinical, A/B testing, finance)
-- Publication-ready PDF/HTML reporting
-- LLM-powered `analyze()` interface with plug-in backend system
-- Full test suite (483 tests passing)
-
-### Version 1.0.5 (Released — Current)
-- **Visualization** — `result.plot()`, `plot_result()`, `plot_distributions()`,
-  `plot_p_value()`, `generate_report()` (HTML/PDF/text); requires optional `matplotlib`
-- **Azure OpenAI** — `backend="azure"` with correct deployment URL, `api-key` header,
-  and `api_version` parameter
-- **HTML & PDF export** — `export_html()` and `export_pdf()` added to reporting module;
-  `weasyprint` optional dep for PDF
-- **Routing validation** — explicit column checks per test type with actionable error messages
-  before dispatch
-- **`backend_options` passthrough** — pass provider-specific kwargs via `backend_options={}`
-- **Structured logging** — `logging.getLogger("hypotestx")` throughout; zero noise by default
-- **Division-by-zero fix** — Welch and Student t-tests guard against zero-variance groups
-- **Duck-typed backends** — any object exposing `.route()` accepted by `get_backend()`
-- **Expanded test suite** — 532 tests passing (up from 483); new Azure and visualization
-  test files plus edge-case tests for parametric functions
-- **Security docs** — API key best-practices section in README
 
 ---
 

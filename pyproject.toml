@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypotestx"
-version = "1.0.5"
+version = "1.0.6"
 description = "Natural language hypothesis testing and comprehensive statistics library"
 authors = [
     {name = "Ankit"}
 ]
-readme = "README.md"
+readme = "README_PYPI.md"
 license = {file = "LICENSE"}
 keywords = ["statistics", "hypothesis testing", "data science", "natural language", "llm"]
 classifiers = [
@@ -45,9 +45,9 @@ dev = [
     "pandas>=1.3.0",
 ]
 docs = [
-    "sphinx>=4.0.0",
-    "sphinx-rtd-theme>=1.0.0",
-    "sphinx-autodoc-typehints>=1.12.0",
+    "sphinx>=7.0",
+    "furo>=2024.1.29",
+    "myst-parser>=2.0",
 ]
 # Optional: enables result.plot(), plot_result(), plot_distributions(),
 # plot_p_value(), and the embedded-chart path in generate_report() / export_html().

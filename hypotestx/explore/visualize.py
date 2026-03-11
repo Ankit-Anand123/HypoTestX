@@ -138,7 +138,10 @@ def plot_p_value(
         crit = _normal_ppf(1 - (alpha / 2 if alternative == "two-sided" else alpha))
         xs_rej = [x for x in xs if x >= crit]
         ys_rej = _normal_pdf(xs_rej, 0, 1)
-        ax.fill_between(xs_rej, ys_rej, 0, alpha=0.45, color="#d62728")
+        # Only add label here if the left tail didn't already claim it
+        _right_label = "Rejection region" if alternative == "greater" else None
+        ax.fill_between(xs_rej, ys_rej, 0, alpha=0.45, color="#d62728",
+                        **(dict(label=_right_label) if _right_label else {}))
 
     # Mark observed statistic
     if test_statistic is not None:
@@ -225,7 +228,10 @@ def plot_distributions(
         ]
         _stderr_bar_chart(ax, labels, means, stds)
     else:  # box (default)
-        ax.boxplot(groups, labels=labels, patch_artist=True,
+        import matplotlib as _mpl
+        _mpl_ver = tuple(int(x) for x in _mpl.__version__.split(".")[:2])
+        _bp_kw = "tick_labels" if _mpl_ver >= (3, 9) else "labels"
+        ax.boxplot(groups, **{_bp_kw: labels}, patch_artist=True,
                    boxprops=dict(facecolor="#4C72B0", alpha=0.7),
                    medianprops=dict(color="white", linewidth=2))
 

@@ -554,6 +554,7 @@ def analyze(
     backend: Any = None,
     alpha: float = 0.05,
     verbose: bool = False,
+    warn_fallback: bool = True,
     **kwargs,
 ) -> HypoResult:
     """
@@ -631,6 +632,9 @@ def analyze(
         Significance level (default 0.05).
     verbose : bool
         Print routing info and LLM reasoning to stdout.
+    warn_fallback : bool
+        Emit a ``UserWarning`` when the built-in regex fallback is used
+        (default ``True``).  Set to ``False`` to suppress the warning.
 
     Returns
     -------
@@ -737,8 +741,21 @@ def analyze(
         print(f"[HypoTestX] Backend: {type(backend_instance).__name__}")
         print(f"[HypoTestX] Question: {question!r}")
 
-    routing = backend_instance.route(question, schema)
-
+    import inspect as _inspect
+    _route_sig = _inspect.signature(backend_instance.route)
+    if "warn_fallback" in _route_sig.parameters:
+        routing = backend_instance.route(question, schema, warn_fallback=warn_fallback)
+    else:
+        routing = backend_instance.route(question, schema)
     _log.debug("Raw routing result: %r", routing)
 
-    return _dispatch(routing, df, alpha=alpha, verbose=verbose)
+    if verbose:
+        print(
+            f"[HypoTestX] Routing confidence: "
+            f"{routing.confidence:.0%} (source: {routing.routing_source})"
+        )
+
+    result = _dispatch(routing, df, alpha=alpha, verbose=verbose)
+    result.routing_confidence = routing.confidence
+    result.routing_source = routing.routing_source
+    return result
