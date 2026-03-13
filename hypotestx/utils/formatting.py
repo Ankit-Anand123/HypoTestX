@@ -2,6 +2,7 @@
 Utility functions for formatting statistical output
 """
 
+
 def format_p_value(p_value: float, threshold: float = 0.001) -> str:
     """Format p-value for display"""
     if p_value < threshold:
@@ -12,6 +13,7 @@ def format_p_value(p_value: float, threshold: float = 0.001) -> str:
         return f"{p_value:.3f}"
     else:
         return f"{p_value:.3f}"
+
 
 def format_effect_size(effect_size: float, effect_type: str = "Cohen's d") -> str:
     """Format effect size for display"""
@@ -24,10 +26,11 @@ def format_effect_size(effect_size: float, effect_type: str = "Cohen's d") -> st
             magnitude = "medium"
         else:
             magnitude = "large"
-        
+
         return f"{effect_size:.3f} ({magnitude})"
-    
+
     return f"{effect_size:.3f}"
+
 
 def format_confidence_interval(ci: tuple, confidence_level: float = 0.95) -> str:
     """Format confidence interval for display"""

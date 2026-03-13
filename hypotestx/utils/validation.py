@@ -4,17 +4,20 @@ Input validation utilities for HypoTestX.
 Provides functions for validating dataframes (dict/pandas/polars),
 column existence, and numeric/categorical data checks.
 """
-from __future__ import annotations
-from typing import Any, List, Optional, Sequence, Union
 
+from __future__ import annotations
+
+from typing import Any, List, Optional, Sequence, Union
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_pandas_df(df: Any) -> bool:
     try:
         import pandas as pd
+
         return isinstance(df, pd.DataFrame)
     except ImportError:
         return False
@@ -23,6 +26,7 @@ def _is_pandas_df(df: Any) -> bool:
 def _is_polars_df(df: Any) -> bool:
     try:
         import polars as pl
+
         return isinstance(df, pl.DataFrame)
     except ImportError:
         return False
@@ -50,6 +54,7 @@ def _get_column_data(df: Any, col: str) -> List[Any]:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def validate_dataframe(df: Any) -> None:
     """
     Assert that *df* is a supported dataframe-like object (dict, pandas,
@@ -65,9 +70,7 @@ def validate_dataframe(df: Any) -> None:
         if not lengths or lengths[0] == 0:
             raise ValueError("Data dict has zero rows")
         if len(set(lengths)) > 1:
-            raise ValueError(
-                f"Data dict columns have inconsistent lengths: {lengths}"
-            )
+            raise ValueError(f"Data dict columns have inconsistent lengths: {lengths}")
         return
     if _is_pandas_df(df) or _is_polars_df(df):
         if len(df) == 0:
@@ -111,9 +114,7 @@ def validate_numeric_column(df: Any, col: str) -> None:
     non_numeric = [v for v in data if not isinstance(v, (int, float))]
     if non_numeric:
         example = non_numeric[:3]
-        raise ValueError(
-            f"Column '{col}' contains non-numeric values: {example}"
-        )
+        raise ValueError(f"Column '{col}' contains non-numeric values: {example}")
 
 
 def validate_categorical_column(df: Any, col: str) -> None:
@@ -124,8 +125,9 @@ def validate_categorical_column(df: Any, col: str) -> None:
     validate_columns(df, col)
 
 
-def validate_sample_size(data: Sequence[Any], min_size: int = 2,
-                          label: str = "data") -> None:
+def validate_sample_size(
+    data: Sequence[Any], min_size: int = 2, label: str = "data"
+) -> None:
     """
     Assert that *data* has at least *min_size* observations.
 
@@ -133,17 +135,13 @@ def validate_sample_size(data: Sequence[Any], min_size: int = 2,
     """
     n = len(data)
     if n < min_size:
-        raise ValueError(
-            f"{label} must have at least {min_size} observations, got {n}"
-        )
+        raise ValueError(f"{label} must have at least {min_size} observations, got {n}")
 
 
 def validate_alpha(alpha: float) -> None:
     """Assert that *alpha* is in the open interval (0, 1)."""
     if not (0 < alpha < 1):
-        raise ValueError(
-            f"alpha must be strictly between 0 and 1, got {alpha}"
-        )
+        raise ValueError(f"alpha must be strictly between 0 and 1, got {alpha}")
 
 
 def validate_probability(p: float, name: str = "probability") -> None:
@@ -156,9 +154,7 @@ def validate_alternative(alternative: str) -> None:
     """Assert that *alternative* is one of the accepted strings."""
     valid = {"two-sided", "greater", "less"}
     if alternative not in valid:
-        raise ValueError(
-            f"alternative must be one of {valid}, got '{alternative}'"
-        )
+        raise ValueError(f"alternative must be one of {valid}, got '{alternative}'")
 
 
 __all__ = [

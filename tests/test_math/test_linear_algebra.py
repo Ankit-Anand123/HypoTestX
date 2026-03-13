@@ -2,17 +2,19 @@
 Tests for hypotestx.math.linear_algebra.
 All matrix functions expect Matrix objects, returning Matrix objects.
 """
+
 import math
+
 import pytest
 
 from hypotestx.math.linear_algebra import (
     Matrix,
-    vector_dot,
-    vector_norm,
+    matrix_inverse,
     matrix_multiply,
     matrix_transpose,
-    matrix_inverse,
     qr_decomposition,
+    vector_dot,
+    vector_norm,
 )
 
 
@@ -110,9 +112,7 @@ class TestMatrixInverse:
         assert approx(prod.data[1][1], 1.0, tol=1e-8)
 
     def test_3x3(self):
-        A = Matrix([[1.0, 2.0, 0.0],
-                    [0.0, 1.0, 3.0],
-                    [0.0, 0.0, 1.0]])
+        A = Matrix([[1.0, 2.0, 0.0], [0.0, 1.0, 3.0], [0.0, 0.0, 1.0]])
         Ainv = matrix_inverse(A)
         prod = matrix_multiply(A, Ainv)
         for i in range(3):

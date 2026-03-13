@@ -9,12 +9,13 @@ format_ci(lower, upper, level)               -> CI string
 format_effect(name, value, magnitude)        -> effect size string
 effect_interpretation_table()                -> str table of Cohen conventions
 """
-from typing import Optional, Union
 
+from typing import Optional, Union
 
 # ---------------------------------------------------------------------------
 # P-value formatting
 # ---------------------------------------------------------------------------
+
 
 def format_p(p: float, threshold: float = 0.001) -> str:
     """
@@ -30,6 +31,7 @@ def format_p(p: float, threshold: float = 0.001) -> str:
 # ---------------------------------------------------------------------------
 # Confidence interval
 # ---------------------------------------------------------------------------
+
 
 def format_ci(
     lower: float,
@@ -51,6 +53,7 @@ def format_ci(
 # Effect size
 # ---------------------------------------------------------------------------
 
+
 def format_effect(name: str, value: float, magnitude: Optional[str] = None) -> str:
     """
     Format an effect size for display.
@@ -66,6 +69,7 @@ def format_effect(name: str, value: float, magnitude: Optional[str] = None) -> s
 # ---------------------------------------------------------------------------
 # APA-style test statistic citations
 # ---------------------------------------------------------------------------
+
 
 def apa_stat(
     test_name: str,
@@ -100,8 +104,15 @@ def apa_stat(
     """
     # Symbol
     symbols = {
-        "t": "t", "f": "F", "chi2": "chi2", "chi-square": "chi2",
-        "r": "r", "u": "U", "w": "W", "h": "H", "z": "z",
+        "t": "t",
+        "f": "F",
+        "chi2": "chi2",
+        "chi-square": "chi2",
+        "r": "r",
+        "u": "U",
+        "w": "W",
+        "h": "H",
+        "z": "z",
     }
     sym = symbols.get(test_name.lower(), test_name)
 
@@ -142,24 +153,25 @@ def _p_apa(p: float) -> str:
 # Cohen's convention table
 # ---------------------------------------------------------------------------
 
+
 def effect_interpretation_table() -> str:
     """
     Return a formatted reference table of Cohen's effect-size conventions.
     """
     rows = [
-        ("Measure",         "Small",  "Medium", "Large",  "Notes"),
-        ("Cohen's d",       "0.20",   "0.50",   "0.80",   "t-tests"),
-        ("Cohen's f",       "0.10",   "0.25",   "0.40",   "ANOVA"),
-        ("Cohen's w",       "0.10",   "0.30",   "0.50",   "chi-square"),
-        ("Pearson r",       "0.10",   "0.30",   "0.50",   "correlation"),
-        ("Eta-squared",     "0.01",   "0.06",   "0.14",   "ANOVA"),
-        ("Rank-biserial r", "0.10",   "0.30",   "0.50",   "Mann-Whitney"),
-        ("Cramer's V",      "0.10",   "0.30",   "0.50",   "chi-square (df>1)"),
-        ("Phi",             "0.10",   "0.30",   "0.50",   "chi-square (df=1)"),
+        ("Measure", "Small", "Medium", "Large", "Notes"),
+        ("Cohen's d", "0.20", "0.50", "0.80", "t-tests"),
+        ("Cohen's f", "0.10", "0.25", "0.40", "ANOVA"),
+        ("Cohen's w", "0.10", "0.30", "0.50", "chi-square"),
+        ("Pearson r", "0.10", "0.30", "0.50", "correlation"),
+        ("Eta-squared", "0.01", "0.06", "0.14", "ANOVA"),
+        ("Rank-biserial r", "0.10", "0.30", "0.50", "Mann-Whitney"),
+        ("Cramer's V", "0.10", "0.30", "0.50", "chi-square (df>1)"),
+        ("Phi", "0.10", "0.30", "0.50", "chi-square (df=1)"),
     ]
 
     col_w = [max(len(r[i]) for r in rows) + 2 for i in range(5)]
-    sep   = "+" + "+".join("-" * w for w in col_w) + "+"
+    sep = "+" + "+".join("-" * w for w in col_w) + "+"
 
     lines = [sep]
     for i, row in enumerate(rows):
@@ -171,6 +183,9 @@ def effect_interpretation_table() -> str:
 
 
 __all__ = [
-    "format_p", "format_ci", "format_effect",
-    "apa_stat", "effect_interpretation_table",
+    "format_p",
+    "format_ci",
+    "format_effect",
+    "apa_stat",
+    "effect_interpretation_table",
 ]

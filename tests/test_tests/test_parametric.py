@@ -1,25 +1,44 @@
 """
 Unit tests for hypotestx.tests.parametric
 """
-import sys
+
 import os
+import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.tests.parametric import (
-    one_sample_ttest, two_sample_ttest, paired_ttest, anova_one_way,
-)
 from hypotestx.core.exceptions import InsufficientDataError, InvalidAlternativeError
 from hypotestx.core.result import HypoResult
+from hypotestx.tests.parametric import (
+    anova_one_way,
+    one_sample_ttest,
+    paired_ttest,
+    two_sample_ttest,
+)
 
 
 class TestOneSampleTTest(unittest.TestCase):
 
     def setUp(self):
         # Mean ~ 12, mu0 = 10  -> should be significant
-        self.data = [10.5, 12.1, 11.8, 13.2, 12.5, 10.9, 11.6, 13.0,
-                     12.3, 11.7, 12.8, 10.8, 13.1, 12.0, 11.9]
+        self.data = [
+            10.5,
+            12.1,
+            11.8,
+            13.2,
+            12.5,
+            10.9,
+            11.6,
+            13.0,
+            12.3,
+            11.7,
+            12.8,
+            10.8,
+            13.1,
+            12.0,
+            11.9,
+        ]
 
     def test_returns_hyporesult(self):
         r = one_sample_ttest(self.data, mu=10)
@@ -31,7 +50,9 @@ class TestOneSampleTTest(unittest.TestCase):
 
     def test_not_significant_for_matching_mu(self):
         r = one_sample_ttest(self.data, mu=12.0, alpha=0.05)
-        self.assertFalse(r.is_significant, f"Expected not significant, p={r.p_value:.4f}")
+        self.assertFalse(
+            r.is_significant, f"Expected not significant, p={r.p_value:.4f}"
+        )
 
     def test_effect_size_cohens_d(self):
         r = one_sample_ttest(self.data, mu=10)
@@ -78,7 +99,7 @@ class TestOneSampleTTest(unittest.TestCase):
 class TestTwoSampleTTest(unittest.TestCase):
 
     def setUp(self):
-        self.control   = [5, 6, 7, 6, 5, 6, 7, 5, 6, 7]
+        self.control = [5, 6, 7, 6, 5, 6, 7, 5, 6, 7]
         self.treatment = [9, 10, 8, 11, 9, 10, 8, 9, 10, 11]
 
     def test_significant_difference(self):
@@ -87,7 +108,7 @@ class TestTwoSampleTTest(unittest.TestCase):
 
     def test_equal_var_flag(self):
         r_student = two_sample_ttest(self.control, self.treatment, equal_var=True)
-        r_welch   = two_sample_ttest(self.control, self.treatment, equal_var=False)
+        r_welch = two_sample_ttest(self.control, self.treatment, equal_var=False)
         # Both should be significant; p-values close
         self.assertTrue(r_student.is_significant)
         self.assertTrue(r_welch.is_significant)
@@ -115,7 +136,7 @@ class TestPairedTTest(unittest.TestCase):
     def setUp(self):
         # Differences must NOT all be equal (std=0 raises for t-test)
         self.before = [4, 5, 6, 7, 8, 6, 7, 8, 5, 6]
-        self.after  = [7, 9, 8, 10, 11, 9, 10, 11, 8, 9]
+        self.after = [7, 9, 8, 10, 11, 9, 10, 11, 8, 9]
 
     def test_significant_improvement(self):
         r = paired_ttest(self.before, self.after)
@@ -123,6 +144,7 @@ class TestPairedTTest(unittest.TestCase):
 
     def test_unequal_lengths_raises(self):
         from hypotestx.core.exceptions import DataFormatError
+
         with self.assertRaises((ValueError, DataFormatError)):
             paired_ttest([1, 2, 3], [1, 2])
 
@@ -169,6 +191,7 @@ class TestAnovaOneWay(unittest.TestCase):
 # Edge-case tests (Issues 3 & 10)
 # ---------------------------------------------------------------------------
 
+
 class TestWelchDivisionByZero(unittest.TestCase):
     """Welch t-test must never silently divide by zero (Issue 3)."""
 
@@ -191,8 +214,9 @@ class TestWelchDivisionByZero(unittest.TestCase):
         try:
             r = two_sample_ttest(g1, g2, equal_var=False)
             # If it runs, p_value must be a valid float
-            self.assertFalse(r.p_value != r.p_value,  # nan check
-                             "p_value should not be NaN")
+            self.assertFalse(
+                r.p_value != r.p_value, "p_value should not be NaN"  # nan check
+            )
         except ValueError as exc:
             # Also acceptable: raise with a descriptive message
             self.assertTrue(len(str(exc)) > 0)
@@ -262,5 +286,5 @@ class TestEdgeCasesTwoSample(unittest.TestCase):
             two_sample_ttest(g1, g2, equal_var=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

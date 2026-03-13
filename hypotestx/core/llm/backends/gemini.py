@@ -17,18 +17,18 @@ Available free models (as of 2026):
     gemini-2.0-flash-lite     smallest / fastest / lowest quota cost
     gemini-1.5-pro            most capable (lower free quota)
 """
+
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Dict, List, Optional
 
 from ..base import LLMBackend
 
-
-_DEFAULT_MODEL   = "gemini-2.0-flash"
-_BASE_URL        = "https://generativelanguage.googleapis.com/v1/models"
+_DEFAULT_MODEL = "gemini-2.0-flash"
+_BASE_URL = "https://generativelanguage.googleapis.com/v1/models"
 
 
 class GeminiBackend(LLMBackend):
@@ -55,11 +55,11 @@ class GeminiBackend(LLMBackend):
         temperature: float = 0.0,
         max_tokens: int = 512,
     ):
-        self.api_key     = api_key
-        self.model       = model
-        self.timeout     = timeout
+        self.api_key = api_key
+        self.model = model
+        self.timeout = timeout
         self.temperature = temperature
-        self.max_tokens  = max_tokens
+        self.max_tokens = max_tokens
 
     # ------------------------------------------------------------------ #
     # LLMBackend interface                                                 #
@@ -76,37 +76,43 @@ class GeminiBackend(LLMBackend):
         gemini_contents = []
 
         for msg in messages:
-            role    = msg["role"]
+            role = msg["role"]
             content = msg["content"]
 
             if role == "system":
                 system_parts.append(content)
             elif role == "user":
-                text = ("\n\n".join(system_parts) + "\n\n" + content
-                        if system_parts else content)
-                system_parts = []   # consumed
-                gemini_contents.append({
-                    "role": "user",
-                    "parts": [{"text": text}],
-                })
+                text = (
+                    "\n\n".join(system_parts) + "\n\n" + content
+                    if system_parts
+                    else content
+                )
+                system_parts = []  # consumed
+                gemini_contents.append(
+                    {
+                        "role": "user",
+                        "parts": [{"text": text}],
+                    }
+                )
             elif role == "assistant":
-                gemini_contents.append({
-                    "role": "model",
-                    "parts": [{"text": content}],
-                })
+                gemini_contents.append(
+                    {
+                        "role": "model",
+                        "parts": [{"text": content}],
+                    }
+                )
 
-        payload = json.dumps({
-            "contents": gemini_contents,
-            "generationConfig": {
-                "temperature": self.temperature,
-                "maxOutputTokens": self.max_tokens,
-            },
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "contents": gemini_contents,
+                "generationConfig": {
+                    "temperature": self.temperature,
+                    "maxOutputTokens": self.max_tokens,
+                },
+            }
+        ).encode("utf-8")
 
-        url = (
-            f"{_BASE_URL}/{self.model}:generateContent"
-            f"?key={self.api_key}"
-        )
+        url = f"{_BASE_URL}/{self.model}:generateContent" f"?key={self.api_key}"
         req = urllib.request.Request(
             url,
             data=payload,
@@ -126,9 +132,7 @@ class GeminiBackend(LLMBackend):
         try:
             return data["candidates"][0]["content"]["parts"][0]["text"]
         except (KeyError, IndexError) as exc:
-            raise RuntimeError(
-                f"[Gemini] Unexpected response format: {data}"
-            ) from exc
+            raise RuntimeError(f"[Gemini] Unexpected response format: {data}") from exc
 
     def __repr__(self) -> str:
         return f"<GeminiBackend model='{self.model}'>"

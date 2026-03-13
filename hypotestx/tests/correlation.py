@@ -7,19 +7,25 @@ Tests
 - Spearman rank-order correlation
 - Point-biserial correlation
 """
+
 from typing import List, Optional
 
-from ..math.distributions import StudentT
-from ..math.basic import sqrt, abs_value
-from ..math.statistics import mean, std
-from ..core.result import HypoResult
-from ..core.validators import validate_data, validate_alpha, validate_alternative, validate_paired_data
 from ..core.exceptions import DataFormatError, InsufficientDataError
-
+from ..core.result import HypoResult
+from ..core.validators import (
+    validate_alpha,
+    validate_alternative,
+    validate_data,
+    validate_paired_data,
+)
+from ..math.basic import abs_value, sqrt
+from ..math.distributions import StudentT
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _rank_data(data: List[float]) -> List[float]:
     """Assign average ranks to a list (ties get mean rank)."""
@@ -57,10 +63,10 @@ def _pearson_r(x: List[float], y: List[float]) -> float:
 def _r_to_pvalue(r: float, n: int, alternative: str) -> float:
     """Convert Pearson r to a p-value using the t-distribution."""
     if abs_value(r) >= 1.0:
-        return 0.0, float('inf') * (1 if r >= 0 else -1)
+        return 0.0, float("inf") * (1 if r >= 0 else -1)
 
     df = n - 2
-    t_stat = r * sqrt(df) / sqrt(1 - r ** 2)
+    t_stat = r * sqrt(df) / sqrt(1 - r**2)
     t_dist = StudentT(df)
 
     if alternative == "two-sided":
@@ -76,6 +82,7 @@ def _r_to_pvalue(r: float, n: int, alternative: str) -> float:
 # ---------------------------------------------------------------------------
 # Pearson Correlation
 # ---------------------------------------------------------------------------
+
 
 def pearson_correlation(
     x: List[float],
@@ -109,24 +116,31 @@ def pearson_correlation(
     n = len(x)
 
     if n < 3:
-        raise InsufficientDataError("Pearson correlation requires at least 3 data points")
+        raise InsufficientDataError(
+            "Pearson correlation requires at least 3 data points"
+        )
 
     r = _pearson_r(x, y)
     p_value, t_stat = _r_to_pvalue(r, n, alternative)
 
     df = n - 2
     t_dist = StudentT(df)
-    t_critical = t_dist.ppf(1 - alpha / 2) if alternative == "two-sided" else t_dist.ppf(1 - alpha)
+    t_critical = (
+        t_dist.ppf(1 - alpha / 2)
+        if alternative == "two-sided"
+        else t_dist.ppf(1 - alpha)
+    )
 
     # Fisher's z transformation for confidence interval of r
     import math
+
     if abs_value(r) < 1.0:
         z_r = 0.5 * math.log((1 + r) / (1 - r))
         se_z = 1.0 / sqrt(n - 3) if n > 3 else float("inf")
         z_crit = 1.96 if alternative == "two-sided" else 1.645
-        ci_z_low  = z_r - z_crit * se_z
+        ci_z_low = z_r - z_crit * se_z
         ci_z_high = z_r + z_crit * se_z
-        r_low  = (math.exp(2 * ci_z_low)  - 1) / (math.exp(2 * ci_z_low)  + 1)
+        r_low = (math.exp(2 * ci_z_low) - 1) / (math.exp(2 * ci_z_low) + 1)
         r_high = (math.exp(2 * ci_z_high) - 1) / (math.exp(2 * ci_z_high) + 1)
         ci = (r_low, r_high)
     else:
@@ -174,6 +188,7 @@ def pearson_correlation(
 # Spearman Rank Correlation
 # ---------------------------------------------------------------------------
 
+
 def spearman_correlation(
     x: List[float],
     y: List[float],
@@ -205,7 +220,9 @@ def spearman_correlation(
     n = len(x)
 
     if n < 3:
-        raise InsufficientDataError("Spearman correlation requires at least 3 data points")
+        raise InsufficientDataError(
+            "Spearman correlation requires at least 3 data points"
+        )
 
     # Compute ranks
     x_ranks = _rank_data(x)
@@ -254,6 +271,7 @@ def spearman_correlation(
 # ---------------------------------------------------------------------------
 # Point-Biserial Correlation
 # ---------------------------------------------------------------------------
+
 
 def point_biserial_correlation(
     continuous: List[float],
@@ -314,7 +332,7 @@ def point_biserial_correlation(
 
     M1 = mean(group1)
     M0 = mean(group0)
-    S_y = std(continuous, ddof=0)   # population std for r_pb formula
+    S_y = std(continuous, ddof=0)  # population std for r_pb formula
 
     if S_y == 0.0:
         raise ValueError("Standard deviation of 'continuous' is zero")

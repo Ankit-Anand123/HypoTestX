@@ -1,28 +1,31 @@
 """
 Tests for hypotestx.utils.validation.
 """
+
+import os
+import sys
+
 import pytest
-import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.utils.validation import (
-    validate_dataframe,
-    validate_columns,
-    validate_numeric_column,
-    validate_categorical_column,
-    validate_sample_size,
     validate_alpha,
-    validate_probability,
     validate_alternative,
+    validate_categorical_column,
+    validate_columns,
+    validate_dataframe,
+    validate_numeric_column,
+    validate_probability,
+    validate_sample_size,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
 
 GOOD_DICT = {
-    "age":    [25, 30, 35, 40, 45],
+    "age": [25, 30, 35, 40, 45],
     "salary": [50.0, 60.0, 70.0, 80.0, 90.0],
     "gender": ["M", "F", "M", "F", "M"],
 }
@@ -31,6 +34,7 @@ GOOD_DICT = {
 # ---------------------------------------------------------------------------
 # validate_dataframe
 # ---------------------------------------------------------------------------
+
 
 class TestValidateDataframe:
     def test_valid_dict(self):
@@ -65,6 +69,7 @@ class TestValidateDataframe:
 # validate_columns
 # ---------------------------------------------------------------------------
 
+
 class TestValidateColumns:
     def test_existing_columns_pass(self):
         validate_columns(GOOD_DICT, "age", "salary")  # should not raise
@@ -85,6 +90,7 @@ class TestValidateColumns:
 # ---------------------------------------------------------------------------
 # validate_numeric_column
 # ---------------------------------------------------------------------------
+
 
 class TestValidateNumericColumn:
     def test_valid_int_column(self):
@@ -113,6 +119,7 @@ class TestValidateNumericColumn:
 # validate_categorical_column
 # ---------------------------------------------------------------------------
 
+
 class TestValidateCategoricalColumn:
     def test_string_column_passes(self):
         validate_categorical_column(GOOD_DICT, "gender")  # should not raise
@@ -129,6 +136,7 @@ class TestValidateCategoricalColumn:
 # ---------------------------------------------------------------------------
 # validate_sample_size
 # ---------------------------------------------------------------------------
+
 
 class TestValidateSampleSize:
     def test_sufficient_size_passes(self):
@@ -153,6 +161,7 @@ class TestValidateSampleSize:
 # ---------------------------------------------------------------------------
 # validate_alpha
 # ---------------------------------------------------------------------------
+
 
 class TestValidateAlpha:
     def test_typical_values_pass(self):
@@ -180,6 +189,7 @@ class TestValidateAlpha:
 # validate_probability
 # ---------------------------------------------------------------------------
 
+
 class TestValidateProbability:
     def test_valid_values(self):
         for p in [0.0, 0.5, 1.0, 0.99]:
@@ -197,6 +207,7 @@ class TestValidateProbability:
 # ---------------------------------------------------------------------------
 # validate_alternative
 # ---------------------------------------------------------------------------
+
 
 class TestValidateAlternative:
     def test_valid_two_sided(self):

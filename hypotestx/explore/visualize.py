@@ -17,6 +17,7 @@ plot_distributions(groups, labels)    -> matplotlib Figure
 plot_p_value(p_value, alpha, df)      -> matplotlib Figure
 generate_report(result, path, fmt)    -> saves HTML / PNG report
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence
@@ -33,11 +34,13 @@ __all__ = [
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _require_matplotlib():
     """Return (plt, patches) or raise a descriptive ImportError."""
     try:
-        import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
+
         return plt, mpatches
     except ImportError as exc:
         raise ImportError(
@@ -51,8 +54,9 @@ def _stderr_bar_chart(ax, group_labels, means, stds, title=""):
     """Draw a simple bar chart with ±1 SD error bars."""
     x = list(range(len(group_labels)))
     ax.bar(x, means, width=0.5, color="#4C72B0", edgecolor="white", alpha=0.85)
-    ax.errorbar(x, means, yerr=stds, fmt="none", color="black",
-                capsize=5, linewidth=1.5)
+    ax.errorbar(
+        x, means, yerr=stds, fmt="none", color="black", capsize=5, linewidth=1.5
+    )
     ax.set_xticks(x)
     ax.set_xticklabels(group_labels)
     ax.set_ylabel("Mean ± SD")
@@ -63,6 +67,7 @@ def _stderr_bar_chart(ax, group_labels, means, stds, title=""):
 def _normal_pdf(x_vals, mu, sigma):
     """Compute normal PDF values, returning zeros if sigma == 0."""
     import math
+
     if sigma == 0:
         return [0.0] * len(x_vals)
     return [
@@ -75,6 +80,7 @@ def _normal_pdf(x_vals, mu, sigma):
 # ---------------------------------------------------------------------------
 # plot_p_value
 # ---------------------------------------------------------------------------
+
 
 def plot_p_value(
     p_value: float,
@@ -115,7 +121,11 @@ def plot_p_value(
 
     if degrees_of_freedom is not None:
         # Approximate t-distribution via scaled normal for visualisation
-        scale = math.sqrt(degrees_of_freedom / (degrees_of_freedom - 2)) if degrees_of_freedom > 2 else 1.0
+        scale = (
+            math.sqrt(degrees_of_freedom / (degrees_of_freedom - 2))
+            if degrees_of_freedom > 2
+            else 1.0
+        )
         x_range = (-4 * scale, 4 * scale)
     else:
         x_range = (-4.0, 4.0)
@@ -133,20 +143,33 @@ def plot_p_value(
         crit = _normal_ppf(alpha / 2 if alternative == "two-sided" else alpha)
         xs_rej = [x for x in xs if x <= crit]
         ys_rej = _normal_pdf(xs_rej, 0, 1)
-        ax.fill_between(xs_rej, ys_rej, 0, alpha=0.45, color="#d62728", label="Rejection region")
+        ax.fill_between(
+            xs_rej, ys_rej, 0, alpha=0.45, color="#d62728", label="Rejection region"
+        )
     if alternative in ("two-sided", "greater"):
         crit = _normal_ppf(1 - (alpha / 2 if alternative == "two-sided" else alpha))
         xs_rej = [x for x in xs if x >= crit]
         ys_rej = _normal_pdf(xs_rej, 0, 1)
         # Only add label here if the left tail didn't already claim it
         _right_label = "Rejection region" if alternative == "greater" else None
-        ax.fill_between(xs_rej, ys_rej, 0, alpha=0.45, color="#d62728",
-                        **(dict(label=_right_label) if _right_label else {}))
+        ax.fill_between(
+            xs_rej,
+            ys_rej,
+            0,
+            alpha=0.45,
+            color="#d62728",
+            **(dict(label=_right_label) if _right_label else {}),
+        )
 
     # Mark observed statistic
     if test_statistic is not None:
-        ax.axvline(x=test_statistic, color="#e67e22", linewidth=2,
-                   linestyle="--", label=f"Test statistic = {test_statistic:.3f}")
+        ax.axvline(
+            x=test_statistic,
+            color="#e67e22",
+            linewidth=2,
+            linestyle="--",
+            label=f"Test statistic = {test_statistic:.3f}",
+        )
 
     sig_label = "significant" if p_value < alpha else "not significant"
     ax.set_xlabel("Standard units")
@@ -160,6 +183,7 @@ def plot_p_value(
 def _normal_ppf(p: float) -> float:
     """Approximate normal inverse CDF (rational approximation)."""
     import math
+
     # Rational approximation (Beasley-Springer-Moro)
     if p <= 0.0:
         return float("-inf")
@@ -171,7 +195,7 @@ def _normal_ppf(p: float) -> float:
         t = math.sqrt(-2.0 * math.log(1.0 - p))
     c0, c1, c2 = 2.515517, 0.802853, 0.010328
     d1, d2, d3 = 1.432788, 0.189269, 0.001308
-    numerator   = c0 + c1 * t + c2 * t * t
+    numerator = c0 + c1 * t + c2 * t * t
     denominator = 1.0 + d1 * t + d2 * t * t + d3 * t * t * t
     result = t - numerator / denominator
     return result if p < 0.5 else -result
@@ -180,6 +204,7 @@ def _normal_ppf(p: float) -> float:
 # ---------------------------------------------------------------------------
 # plot_distributions
 # ---------------------------------------------------------------------------
+
 
 def plot_distributions(
     groups: List[Sequence[float]],
@@ -221,19 +246,25 @@ def plot_distributions(
         ax.set_xticklabels(labels)
     elif kind == "bar":
         import math
+
         means = [sum(g) / len(g) if g else 0.0 for g in groups]
-        stds  = [
+        stds = [
             math.sqrt(sum((v - m) ** 2 for v in g) / len(g)) if len(g) > 1 else 0.0
             for g, m in zip(groups, means)
         ]
         _stderr_bar_chart(ax, labels, means, stds)
     else:  # box (default)
         import matplotlib as _mpl
+
         _mpl_ver = tuple(int(x) for x in _mpl.__version__.split(".")[:2])
         _bp_kw = "tick_labels" if _mpl_ver >= (3, 9) else "labels"
-        ax.boxplot(groups, **{_bp_kw: labels}, patch_artist=True,
-                   boxprops=dict(facecolor="#4C72B0", alpha=0.7),
-                   medianprops=dict(color="white", linewidth=2))
+        ax.boxplot(
+            groups,
+            **{_bp_kw: labels},
+            patch_artist=True,
+            boxprops=dict(facecolor="#4C72B0", alpha=0.7),
+            medianprops=dict(color="white", linewidth=2),
+        )
 
     ax.set_title(title or "Group Distribution Comparison")
     ax.set_ylabel("Value")
@@ -244,6 +275,7 @@ def plot_distributions(
 # ---------------------------------------------------------------------------
 # plot_result
 # ---------------------------------------------------------------------------
+
 
 def plot_result(result: Any, kind: str = "auto") -> Any:
     """
@@ -266,13 +298,13 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
     """
     plt, _ = _require_matplotlib()
 
-    test_name  = (result.test_name or "").lower()
-    p_value    = result.p_value
-    alpha      = result.alpha
-    stat       = result.statistic
-    df_stat    = result.degrees_of_freedom
-    alt        = getattr(result, "alternative", "two-sided")
-    d_summary  = result.data_summary or {}
+    test_name = (result.test_name or "").lower()
+    p_value = result.p_value
+    alpha = result.alpha
+    stat = result.statistic
+    df_stat = result.degrees_of_freedom
+    alt = getattr(result, "alternative", "two-sided")
+    d_summary = result.data_summary or {}
 
     # ── auto strategy ────────────────────────────────────────────────────
     if kind == "auto":
@@ -284,11 +316,12 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
     # ── comparison bar (two-group t-test) ────────────────────────────────
     if kind == "comparison_bar":
         import math
-        means  = [d_summary.get("group1_mean", 0), d_summary.get("group2_mean", 0)]
-        stds   = [d_summary.get("group1_std",  0), d_summary.get("group2_std",  0)]
+
+        means = [d_summary.get("group1_mean", 0), d_summary.get("group2_mean", 0)]
+        stds = [d_summary.get("group1_std", 0), d_summary.get("group2_std", 0)]
         labels = ["Group 1", "Group 2"]
-        n1     = d_summary.get("group1_size", 1)
-        n2     = d_summary.get("group2_size", 1)
+        n1 = d_summary.get("group1_size", 1)
+        n2 = d_summary.get("group2_size", 1)
         if n1 and n2:
             labels = [f"Group 1 (n={n1})", f"Group 2 (n={n2})"]
 
@@ -302,7 +335,8 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
         sig = "Significant" if p_value < alpha else "Not significant"
         fig.suptitle(
             f"{result.test_name}  |  {sig}  (p = {p_value:.4f})",
-            fontsize=12, fontweight="bold",
+            fontsize=12,
+            fontweight="bold",
         )
         fig.tight_layout(rect=[0, 0, 1, 0.94])
         return fig
@@ -310,8 +344,11 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
     # ── p-value only ─────────────────────────────────────────────────────
     df_val = df_stat if isinstance(df_stat, (int, float)) else None
     return plot_p_value(
-        p_value, alpha=alpha, degrees_of_freedom=df_val,
-        test_statistic=stat, alternative=alt,
+        p_value,
+        alpha=alpha,
+        degrees_of_freedom=df_val,
+        test_statistic=stat,
+        alternative=alt,
         title=f"{result.test_name}  (p = {p_value:.4f})",
     )
 
@@ -330,13 +367,11 @@ def _draw_p_panel(ax, p_value, alpha, test_stat, df_val, alternative):
     if alternative in ("two-sided", "less"):
         crit = _normal_ppf(alpha / 2 if alternative == "two-sided" else alpha)
         xs_r = [x for x in xs if x <= crit]
-        ax.fill_between(xs_r, _normal_pdf(xs_r, 0, 1), 0,
-                        alpha=0.45, color="#d62728")
+        ax.fill_between(xs_r, _normal_pdf(xs_r, 0, 1), 0, alpha=0.45, color="#d62728")
     if alternative in ("two-sided", "greater"):
         crit = _normal_ppf(1 - (alpha / 2 if alternative == "two-sided" else alpha))
         xs_r = [x for x in xs if x >= crit]
-        ax.fill_between(xs_r, _normal_pdf(xs_r, 0, 1), 0,
-                        alpha=0.45, color="#d62728")
+        ax.fill_between(xs_r, _normal_pdf(xs_r, 0, 1), 0, alpha=0.45, color="#d62728")
 
     if test_stat is not None:
         ax.axvline(x=test_stat, color="#e67e22", linewidth=2, linestyle="--")
@@ -350,6 +385,7 @@ def _draw_p_panel(ax, p_value, alpha, test_stat, df_val, alternative):
 # ---------------------------------------------------------------------------
 # generate_report
 # ---------------------------------------------------------------------------
+
 
 def generate_report(
     result: Any,
@@ -382,6 +418,7 @@ def generate_report(
     """
     if fmt == "text":
         from ..reporting.generator import text_report
+
         content = text_report(result, verbose=True)
         if path:
             with open(path, "w", encoding="utf-8") as fh:
@@ -411,6 +448,7 @@ def generate_report(
     try:
         import base64
         import io
+
         fig = plot_result(result)
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=100, bbox_inches="tight")
@@ -421,6 +459,7 @@ def generate_report(
             f'style="max-width:100%;margin:1em 0;" alt="test result plot"/>'
         )
         import matplotlib.pyplot as plt
+
         plt.close(fig)
     except Exception:
         pass  # plotting is optional
@@ -441,17 +480,18 @@ def generate_report(
     if result.degrees_of_freedom is not None:
         rows.append(("df", str(result.degrees_of_freedom)))
     if result.effect_size is not None:
-        rows.append((result.effect_size_name or "Effect size",
-                     f"{result.effect_size:.4f} ({result.effect_magnitude})"))
+        rows.append(
+            (
+                result.effect_size_name or "Effect size",
+                f"{result.effect_size:.4f} ({result.effect_magnitude})",
+            )
+        )
     if result.confidence_interval is not None:
         ci_level = int((1 - result.alpha) * 100)
         ci = result.confidence_interval
-        rows.append((f"{ci_level}% CI",
-                     f"[{ci[0]:.4f}, {ci[1]:.4f}]"))
+        rows.append((f"{ci_level}% CI", f"[{ci[0]:.4f}, {ci[1]:.4f}]"))
 
-    table_rows_html = "\n".join(
-        f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows
-    )
+    table_rows_html = "\n".join(f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -497,4 +537,3 @@ def generate_report(
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(html_content)
     return html_content
-

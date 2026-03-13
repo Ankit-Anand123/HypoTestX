@@ -1,17 +1,20 @@
 """
 Tests for hypotestx.core.parser -- hypothesis text parsing.
 """
+
+import os
+import sys
+
 import pytest
-import sys, os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from hypotestx.core.parser import (
-    parse_hypothesis,
-    ParsedHypothesis,
     AdvancedHypothesisParser,
+    ParsedHypothesis,
     SimpleHypothesisParser,
     create_parser,
+    parse_hypothesis,
 )
 
 
@@ -50,20 +53,31 @@ class TestParseHypothesisTestTypes:
     def test_comparison_question(self):
         r = parse_hypothesis("Do males earn more than females?")
         assert r.test_type in (
-            "two_sample_ttest", "one_sample_ttest", "anova",
-            "chi_square", "correlation", "unknown"
+            "two_sample_ttest",
+            "one_sample_ttest",
+            "anova",
+            "chi_square",
+            "correlation",
+            "unknown",
         )
 
     def test_correlation_question(self):
         r = parse_hypothesis("Is there a correlation between height and weight?")
-        assert r.test_type in ("correlation", "two_sample_ttest", "chi_square", "unknown")
+        assert r.test_type in (
+            "correlation",
+            "two_sample_ttest",
+            "chi_square",
+            "unknown",
+        )
 
     def test_association_question(self):
         r = parse_hypothesis("Is there an association between gender and outcome?")
         assert isinstance(r.test_type, str)
 
     def test_before_after_question(self):
-        r = parse_hypothesis("Is there a significant difference before and after treatment?")
+        r = parse_hypothesis(
+            "Is there a significant difference before and after treatment?"
+        )
         assert isinstance(r.test_type, str)
 
 
@@ -112,7 +126,9 @@ class TestSimpleHypothesisParser:
         assert r.test_type in ("correlation", "two_sample_ttest", "unknown")
 
     def test_paired_keyword(self):
-        r = self.parser.parse("Is there a difference before and after the intervention?")
+        r = self.parser.parse(
+            "Is there a difference before and after the intervention?"
+        )
         assert r.test_type in ("paired_ttest", "two_sample_ttest", "unknown")
 
     def test_one_sample_pattern(self):

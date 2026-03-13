@@ -1,13 +1,10 @@
 """
 Input validation utilities for HypoTestX
 """
-from typing import List, Optional, Any
 
-from .exceptions import (
-    InsufficientDataError,
-    InvalidAlternativeError,
-    DataFormatError,
-)
+from typing import Any, List, Optional
+
+from .exceptions import DataFormatError, InsufficientDataError, InvalidAlternativeError
 
 
 def validate_data(data: Any, min_size: int = 2, name: str = "data") -> List[float]:
@@ -210,7 +207,9 @@ def validate_contingency_table(table: Any) -> List[List[float]]:
     return validated
 
 
-def validate_groups(*groups: Any, min_size: int = 2, min_groups: int = 2) -> List[List[float]]:
+def validate_groups(
+    *groups: Any, min_size: int = 2, min_groups: int = 2
+) -> List[List[float]]:
     """
     Validate three or more independent group samples (e.g., for ANOVA, Kruskal-Wallis).
 

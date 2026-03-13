@@ -1,17 +1,20 @@
 """
 Unit tests for hypotestx.tests.correlation
 """
-import sys
+
 import os
+import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.tests.correlation import (
-    pearson_correlation, spearman_correlation, point_biserial_correlation,
-)
-from hypotestx.core.exceptions import InsufficientDataError, DataFormatError
+from hypotestx.core.exceptions import DataFormatError, InsufficientDataError
 from hypotestx.core.result import HypoResult
+from hypotestx.tests.correlation import (
+    pearson_correlation,
+    point_biserial_correlation,
+    spearman_correlation,
+)
 
 
 class TestPearsonCorrelation(unittest.TestCase):
@@ -61,7 +64,7 @@ class TestPearsonCorrelation(unittest.TestCase):
         self.assertEqual(r.alpha, 0.01)
 
     def test_alternative_two_sided(self):
-        r = pearson_correlation(self.x_pos, self.y_pos, alternative='two-sided')
+        r = pearson_correlation(self.x_pos, self.y_pos, alternative="two-sided")
         self.assertIsInstance(r, HypoResult)
 
     def test_insufficient_data_raises(self):
@@ -109,7 +112,7 @@ class TestPointBiserialCorrelation(unittest.TestCase):
     def setUp(self):
         # Binary group and continuous measure
         # point_biserial_correlation(continuous, binary)
-        self.cont   = [2, 3, 4, 5, 6, 14, 15, 16, 17, 18]
+        self.cont = [2, 3, 4, 5, 6, 14, 15, 16, 17, 18]
         self.binary = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
 
     def test_returns_hyporesult(self):
@@ -131,5 +134,5 @@ class TestPointBiserialCorrelation(unittest.TestCase):
             point_biserial_correlation([4, 5, 6], [0, 1, 2])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

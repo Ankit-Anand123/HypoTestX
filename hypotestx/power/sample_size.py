@@ -14,21 +14,23 @@ n_chi_square(effect_size, df, alpha, power)
 n_correlation(r, alpha, power, alternative)
 sample_size_summary(...)
 """
+
 from typing import Optional
+
 from ..math.basic import sqrt
 from .analysis import (
-    power_ttest_one_sample,
-    power_ttest_two_sample,
-    power_ttest_paired,
     power_anova,
     power_chi_square,
     power_correlation,
+    power_ttest_one_sample,
+    power_ttest_paired,
+    power_ttest_two_sample,
 )
-
 
 # ---------------------------------------------------------------------------
 # Internal bisection solver
 # ---------------------------------------------------------------------------
+
 
 def _solve_n(
     power_fn,
@@ -48,7 +50,7 @@ def _solve_n(
     while power_fn(n_high, **kwargs) < target_power:
         n_high = n_high * 2
         if n_high > 10_000_000:
-            return n_high   # give up
+            return n_high  # give up
 
     lo, hi = n_low, n_high
     while lo < hi:
@@ -63,6 +65,7 @@ def _solve_n(
 # ---------------------------------------------------------------------------
 # One-sample t-test
 # ---------------------------------------------------------------------------
+
 
 def n_ttest_one_sample(
     effect_size: float,
@@ -84,13 +87,16 @@ def n_ttest_one_sample(
     -------
     int : minimum sample size per test
     """
-    fn = lambda n: power_ttest_one_sample(effect_size, n, alpha=alpha, alternative=alternative)
+    fn = lambda n: power_ttest_one_sample(
+        effect_size, n, alpha=alpha, alternative=alternative
+    )
     return _solve_n(fn, power)
 
 
 # ---------------------------------------------------------------------------
 # Two-sample t-test
 # ---------------------------------------------------------------------------
+
 
 def n_ttest_two_sample(
     effect_size: float,
@@ -112,13 +118,16 @@ def n_ttest_two_sample(
     -------
     int : minimum n per group; total N = 2 * returned value
     """
-    fn = lambda n: power_ttest_two_sample(effect_size, n, n, alpha=alpha, alternative=alternative)
+    fn = lambda n: power_ttest_two_sample(
+        effect_size, n, n, alpha=alpha, alternative=alternative
+    )
     return _solve_n(fn, power)
 
 
 # ---------------------------------------------------------------------------
 # Paired t-test
 # ---------------------------------------------------------------------------
+
 
 def n_ttest_paired(
     effect_size: float,
@@ -140,13 +149,16 @@ def n_ttest_paired(
     -------
     int : minimum number of pairs
     """
-    fn = lambda n: power_ttest_paired(effect_size, n, alpha=alpha, alternative=alternative)
+    fn = lambda n: power_ttest_paired(
+        effect_size, n, alpha=alpha, alternative=alternative
+    )
     return _solve_n(fn, power)
 
 
 # ---------------------------------------------------------------------------
 # One-way ANOVA
 # ---------------------------------------------------------------------------
+
 
 def n_anova(
     effect_size: float,
@@ -179,6 +191,7 @@ def n_anova(
 # Chi-square
 # ---------------------------------------------------------------------------
 
+
 def n_chi_square(
     effect_size: float,
     df: int,
@@ -208,6 +221,7 @@ def n_chi_square(
 # Correlation
 # ---------------------------------------------------------------------------
 
+
 def n_correlation(
     r: float,
     alpha: float = 0.05,
@@ -235,6 +249,7 @@ def n_correlation(
 # ---------------------------------------------------------------------------
 # Convenience summary
 # ---------------------------------------------------------------------------
+
 
 def sample_size_summary(
     test_type: str,
@@ -269,9 +284,7 @@ def sample_size_summary(
         "paired_t": lambda: n_ttest_paired(
             effect_size, alpha, power, kwargs.get("alternative", "two-sided")
         ),
-        "anova": lambda: n_anova(
-            effect_size, kwargs.get("k", 3), alpha, power
-        ),
+        "anova": lambda: n_anova(effect_size, kwargs.get("k", 3), alpha, power),
         "chi_square": lambda: n_chi_square(
             effect_size, kwargs.get("df", 1), alpha, power
         ),
@@ -282,14 +295,14 @@ def sample_size_summary(
     if test_type not in dispatch:
         raise ValueError(f"test_type must be one of: {list(dispatch.keys())}")
 
-    n      = dispatch[test_type]()
+    n = dispatch[test_type]()
     labels = {
         "one_sample_t": f"n = {n} (total)",
-        "paired_t":     f"n = {n} pairs",
+        "paired_t": f"n = {n} pairs",
         "two_sample_t": f"n = {n} per group  (total = {2 * n})",
-        "anova":        f"n = {n} per group  (total = {kwargs.get('k', 3) * n})",
-        "chi_square":   f"n = {n} (total)",
-        "correlation":  f"n = {n} (total)",
+        "anova": f"n = {n} per group  (total = {kwargs.get('k', 3) * n})",
+        "chi_square": f"n = {n} (total)",
+        "correlation": f"n = {n} (total)",
     }
 
     lines = [

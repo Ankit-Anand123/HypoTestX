@@ -35,15 +35,15 @@ Usage:
     )
     result = hx.analyze(df, "...", backend=backend)
 """
+
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Dict, List, Optional
 
 from ..base import LLMBackend
-
 
 # Known provider shorthand configs
 _PROVIDER_CONFIGS: Dict[str, Dict] = {
@@ -70,8 +70,8 @@ _PROVIDER_CONFIGS: Dict[str, Dict] = {
     # Azure OpenAI — base_url and model (deployment name) must be supplied by
     # the user; this entry only carries the default API version.
     "azure": {
-        "base_url": "",          # must be provided: https://<resource>.openai.azure.com
-        "default_model": "",     # must be provided: deployment name
+        "base_url": "",  # must be provided: https://<resource>.openai.azure.com
+        "default_model": "",  # must be provided: deployment name
         "api_version": "2024-02-01",
     },
 }
@@ -119,27 +119,20 @@ class OpenAICompatBackend(LLMBackend):
         api_version: str = "",
     ):
         cfg = _PROVIDER_CONFIGS.get(provider.lower(), _PROVIDER_CONFIGS["openai"])
-        self.api_key     = api_key
-        self.base_url    = (base_url or cfg.get("base_url", "")).rstrip("/")
-        self.model       = model or cfg.get("default_model", "")
-        self.provider    = provider
-        self.timeout     = timeout
+        self.api_key = api_key
+        self.base_url = (base_url or cfg.get("base_url", "")).rstrip("/")
+        self.model = model or cfg.get("default_model", "")
+        self.provider = provider
+        self.timeout = timeout
         self.temperature = temperature
-        self.max_tokens  = max_tokens
+        self.max_tokens = max_tokens
         self.extra_headers = extra_headers or {}
-        self.name        = provider.lower()
+        self.name = provider.lower()
 
         # Azure-specific: determine whether this is an Azure endpoint
-        self._is_azure = (
-            provider.lower() == "azure"
-            or _is_azure_url(self.base_url)
-        )
+        self._is_azure = provider.lower() == "azure" or _is_azure_url(self.base_url)
         # API version (only meaningful for Azure)
-        self.api_version = (
-            api_version
-            or cfg.get("api_version", "")
-            or "2024-02-01"
-        )
+        self.api_version = api_version or cfg.get("api_version", "") or "2024-02-01"
 
         if self._is_azure:
             if not self.base_url:
@@ -176,9 +169,9 @@ class OpenAICompatBackend(LLMBackend):
         # Azure uses a fixed deployment name in the URL, so it must not
         # appear again in the JSON body.
         body: Dict = {
-            "messages":    messages,
+            "messages": messages,
             "temperature": self.temperature,
-            "max_tokens":  self.max_tokens,
+            "max_tokens": self.max_tokens,
         }
         if not self._is_azure:
             body["model"] = self.model
@@ -189,11 +182,11 @@ class OpenAICompatBackend(LLMBackend):
             # Azure authenticates with the api-key header (not Bearer token)
             headers = {
                 "Content-Type": "application/json",
-                "api-key":      self.api_key,
+                "api-key": self.api_key,
             }
         else:
             headers = {
-                "Content-Type":  "application/json",
+                "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}",
             }
         headers.update(self.extra_headers)
@@ -205,13 +198,9 @@ class OpenAICompatBackend(LLMBackend):
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             body_txt = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(
-                f"[{self.name}] HTTP {exc.code}: {body_txt}"
-            ) from exc
+            raise RuntimeError(f"[{self.name}] HTTP {exc.code}: {body_txt}") from exc
         except urllib.error.URLError as exc:
-            raise RuntimeError(
-                f"[{self.name}] Connection error: {exc.reason}"
-            ) from exc
+            raise RuntimeError(f"[{self.name}] Connection error: {exc.reason}") from exc
 
         return data["choices"][0]["message"]["content"]
 
@@ -222,6 +211,5 @@ class OpenAICompatBackend(LLMBackend):
                 f"deployment='{self.model}' api_version='{self.api_version}'>"
             )
         return (
-            f"<OpenAICompatBackend provider='{self.provider}' "
-            f"model='{self.model}'>"
+            f"<OpenAICompatBackend provider='{self.provider}' " f"model='{self.model}'>"
         )

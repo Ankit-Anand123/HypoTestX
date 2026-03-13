@@ -7,18 +7,24 @@ Tests
 - Wilcoxon Signed-Rank  (one sample / paired samples)
 - Kruskal-Wallis H  (k independent samples)
 """
+
 from typing import List, Optional, Tuple
 
-from ..math.distributions import Normal, ChiSquare
-from ..math.basic import sqrt, abs_value
-from ..math.statistics import mean, std
 from ..core.result import HypoResult
-from ..core.validators import validate_data, validate_alpha, validate_alternative, validate_groups
-
+from ..core.validators import (
+    validate_alpha,
+    validate_alternative,
+    validate_data,
+    validate_groups,
+)
+from ..math.basic import abs_value, sqrt
+from ..math.distributions import ChiSquare, Normal
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _rank_data(data: List[float]) -> List[float]:
     """
@@ -35,7 +41,7 @@ def _rank_data(data: List[float]) -> List[float]:
         j = i
         while j < n - 1 and indexed[j][1] == indexed[j + 1][1]:
             j += 1
-        avg_rank = (i + j + 2) / 2.0          # 1-based average rank
+        avg_rank = (i + j + 2) / 2.0  # 1-based average rank
         for k in range(i, j + 1):
             ranks[indexed[k][0]] = avg_rank
         i = j + 1
@@ -49,13 +55,15 @@ def _tie_correction(data: List[float]) -> float:
     Used to correct variance in non-parametric tests.
     """
     from collections import Counter
+
     counts = Counter(data)
-    return sum(t ** 3 - t for t in counts.values() if t > 1)
+    return sum(t**3 - t for t in counts.values() if t > 1)
 
 
 # ---------------------------------------------------------------------------
 # Mann-Whitney U Test
 # ---------------------------------------------------------------------------
+
 
 def mann_whitney_u(
     group1: List[float],
@@ -111,7 +119,7 @@ def mann_whitney_u(
     tie_sum = _tie_correction(combined_vals)
     var_U = (n1 * n2 / 12.0) * (N + 1 - tie_sum / (N * (N - 1))) if N > 1 else 0
     if var_U <= 0:
-        var_U = n1 * n2 * (N + 1) / 12.0   # fallback without tie correction
+        var_U = n1 * n2 * (N + 1) / 12.0  # fallback without tie correction
 
     std_U = sqrt(var_U)
 
@@ -177,6 +185,7 @@ def mann_whitney_u(
 # Wilcoxon Signed-Rank Test
 # ---------------------------------------------------------------------------
 
+
 def wilcoxon_signed_rank(
     x: List[float],
     y: Optional[List[float]] = None,
@@ -213,6 +222,7 @@ def wilcoxon_signed_rank(
         y = validate_data(y, 2, "y")
         if len(x) != len(y):
             from ..core.exceptions import DataFormatError
+
             raise DataFormatError(
                 f"x and y must have the same length for a paired test, "
                 f"got {len(x)} and {len(y)}"
@@ -299,6 +309,7 @@ def wilcoxon_signed_rank(
 # Kruskal-Wallis H Test
 # ---------------------------------------------------------------------------
 
+
 def kruskal_wallis(
     *groups: List[float],
     alpha: float = 0.05,
@@ -348,7 +359,7 @@ def kruskal_wallis(
 
     # Tie correction
     tie_sum = _tie_correction(combined_vals)
-    tie_factor = 1.0 - tie_sum / (N ** 3 - N) if N > 1 else 1.0
+    tie_factor = 1.0 - tie_sum / (N**3 - N) if N > 1 else 1.0
     if tie_factor > 0:
         H = H / tie_factor
 

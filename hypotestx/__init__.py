@@ -2,103 +2,135 @@
 HypoTestX: Natural Language Hypothesis Testing Library
 """
 
-# ── Core ──────────────────────────────────────────────────────────────────────
-from .core.parser import parse_hypothesis, create_parser
-from .core.result import HypoResult
+# ── Assumption checks ────────────────────────────────────────────────────────
+from .core.assumptions import (
+    bartlett_test,
+    check_equal_variances,
+    check_normality,
+    jarque_bera,
+    levene_test,
+    shapiro_wilk,
+)
 from .core.exceptions import (
+    AssumptionViolationError,
+    DataFormatError,
     HypoTestXError,
     InsufficientDataError,
-    AssumptionViolationError,
     InvalidAlternativeError,
     ParseError,
     UnsupportedTestError,
-    DataFormatError,
 )
 
-# ── Parametric tests ──────────────────────────────────────────────────────────
-from .tests.parametric import (
-    one_sample_ttest,
-    two_sample_ttest,
-    paired_ttest,
-    anova_one_way,
-)
+# ── Core ──────────────────────────────────────────────────────────────────────
+from .core.parser import create_parser, parse_hypothesis
+from .core.result import HypoResult
 
-# ── Non-parametric tests ──────────────────────────────────────────────────────
-from .tests.nonparametric import (
-    mann_whitney_u,
-    wilcoxon_signed_rank,
-    kruskal_wallis,
+# ── Visualization (optional — requires matplotlib) ───────────────────────────
+from .explore.visualize import (
+    generate_report,
+    plot_distributions,
+    plot_p_value,
+    plot_result,
 )
-
-# ── Categorical tests ─────────────────────────────────────────────────────────
-from .tests.categorical import (
-    chi_square_test,
-    fisher_exact_test,
-)
-
-# ── Correlation tests ─────────────────────────────────────────────────────────
-from .tests.correlation import (
-    pearson_correlation,
-    spearman_correlation,
-    point_biserial_correlation,
-)
+from .math.distributions import ChiSquare, F, Normal, StudentT
 
 # ── Math utilities ────────────────────────────────────────────────────────────
-from .math.statistics import mean, std, variance, correlation
-from .math.distributions import Normal, StudentT, ChiSquare, F
-
-# ── Assumption checks ────────────────────────────────────────────────────────
-from .core.assumptions import (
-    shapiro_wilk, levene_test, bartlett_test, jarque_bera,
-    check_normality, check_equal_variances,
-)
+from .math.statistics import correlation, mean, std, variance
 
 # ── Power analysis ────────────────────────────────────────────────────────────
 from .power.analysis import (
-    power_ttest_one_sample, power_ttest_two_sample, power_ttest_paired,
-    power_anova, power_chi_square, power_correlation, power_summary,
+    power_anova,
+    power_chi_square,
+    power_correlation,
+    power_summary,
+    power_ttest_one_sample,
+    power_ttest_paired,
+    power_ttest_two_sample,
 )
 from .power.sample_size import (
-    n_ttest_one_sample, n_ttest_two_sample, n_ttest_paired,
-    n_anova, n_chi_square, n_correlation, sample_size_summary,
+    n_anova,
+    n_chi_square,
+    n_correlation,
+    n_ttest_one_sample,
+    n_ttest_paired,
+    n_ttest_two_sample,
+    sample_size_summary,
 )
-
-# ── Descriptive stats & bootstrap ────────────────────────────────────────────
-from .stats.descriptive import (
-    DescriptiveStats, describe,
-    five_number_summary, detect_outliers, frequency_table, compare_groups,
-)
-from .stats.bootstrap import (
-    bootstrap_ci, bootstrap_two_sample_ci, bootstrap_mean_ci,
-    bootstrap_test, permutation_test,
+from .reporting.formatters import (
+    apa_stat,
+    effect_interpretation_table,
+    format_ci,
+    format_effect,
+    format_p,
 )
 
 # ── Reporting ────────────────────────────────────────────────────────────────
 from .reporting.generator import (
-    apa_report, text_report, batch_report,
-    export_csv, export_html, export_pdf,
+    apa_report,
+    batch_report,
+    export_csv,
+    export_html,
+    export_pdf,
+    text_report,
 )
-from .reporting.formatters import (
-    format_p, format_ci, format_effect, apa_stat, effect_interpretation_table,
+from .stats.bootstrap import (
+    bootstrap_ci,
+    bootstrap_mean_ci,
+    bootstrap_test,
+    bootstrap_two_sample_ci,
+    permutation_test,
 )
 
-# ── Visualization (optional — requires matplotlib) ───────────────────────────
-from .explore.visualize import (
-    plot_result,
-    plot_distributions,
-    plot_p_value,
-    generate_report,
+# ── Descriptive stats & bootstrap ────────────────────────────────────────────
+from .stats.descriptive import (
+    DescriptiveStats,
+    compare_groups,
+    describe,
+    detect_outliers,
+    five_number_summary,
+    frequency_table,
+)
+
+# ── Categorical tests ─────────────────────────────────────────────────────────
+from .tests.categorical import chi_square_test, fisher_exact_test
+
+# ── Correlation tests ─────────────────────────────────────────────────────────
+from .tests.correlation import (
+    pearson_correlation,
+    point_biserial_correlation,
+    spearman_correlation,
+)
+
+# ── Non-parametric tests ──────────────────────────────────────────────────────
+from .tests.nonparametric import kruskal_wallis, mann_whitney_u, wilcoxon_signed_rank
+
+# ── Parametric tests ──────────────────────────────────────────────────────────
+from .tests.parametric import (
+    anova_one_way,
+    one_sample_ttest,
+    paired_ttest,
+    two_sample_ttest,
 )
 
 # ── Utils ─────────────────────────────────────────────────────────────────────
 from .utils.data_utils import (
-    coerce_numeric, detect_missing, drop_missing,
-    group_by, split_groups, validate_sample_data,
-    summary_table, are_paired,
+    are_paired,
+    coerce_numeric,
+    detect_missing,
+    drop_missing,
+    group_by,
+    split_groups,
+    summary_table,
+    validate_sample_data,
 )
 from .utils.preprocessing import (
-    standardize, normalize, winsorize, log_transform,
-    rank_transform, center, robust_scale,
+    center,
+    log_transform,
+    normalize,
+    rank_transform,
+    robust_scale,
+    standardize,
+    winsorize,
 )
 
 __version__ = "1.0.5"
@@ -107,19 +139,20 @@ __author__ = "Ankit"
 # ── LLM-powered natural language interface ───────────────────────────────────
 from .core.engine import analyze
 from .core.llm import (
-    get_backend,
-    LLMBackend,
     CallableBackend,
-    RoutingResult,
-    SchemaInfo,
-    OllamaBackend,
-    OpenAICompatBackend,
+    FallbackBackend,
     GeminiBackend,
     HuggingFaceBackend,
-    FallbackBackend,
+    LLMBackend,
+    OllamaBackend,
+    OpenAICompatBackend,
+    RoutingResult,
+    SchemaInfo,
+    get_backend,
 )
 
 # ── Natural language interface (legacy regex parser) ─────────────────────────
+
 
 def test(hypothesis: str, data=None, **kwargs):
     """
@@ -149,44 +182,60 @@ def test(hypothesis: str, data=None, **kwargs):
     """
     parsed = parse_hypothesis(hypothesis, data)
 
-    alpha       = kwargs.get('alpha', parsed.confidence_level)
-    alternative = kwargs.get('alternative', parsed.tail)
-    method      = kwargs.get('method', 'parametric')
+    alpha = kwargs.get("alpha", parsed.confidence_level)
+    alternative = kwargs.get("alternative", parsed.tail)
+    method = kwargs.get("method", "parametric")
 
     # ── one-sample t-test ────────────────────────────────────────
     if parsed.test_type == "one_sample_ttest":
         if data is None:
             raise ValueError("Data is required for statistical testing")
         values = _coerce_to_list(data, "data")
-        mu = kwargs.get('mu', 0.0)
+        mu = kwargs.get("mu", 0.0)
         return one_sample_ttest(values, mu=mu, alpha=alpha, alternative=alternative)
 
     # ── two-sample t-test / Welch's / Mann-Whitney ────────────────
     elif parsed.test_type == "two_sample_ttest":
         if data is None or parsed.group_column is None or parsed.value_column is None:
-            raise ValueError("Data with group and value columns required for two-sample test")
+            raise ValueError(
+                "Data with group and value columns required for two-sample test"
+            )
 
         unique_groups = list(data[parsed.group_column].unique())
         if len(unique_groups) != 2:
             raise ValueError(f"Expected 2 groups, found {len(unique_groups)}")
 
-        g1 = list(data[data[parsed.group_column] == unique_groups[0]][parsed.value_column].values)
-        g2 = list(data[data[parsed.group_column] == unique_groups[1]][parsed.value_column].values)
+        g1 = list(
+            data[data[parsed.group_column] == unique_groups[0]][
+                parsed.value_column
+            ].values
+        )
+        g2 = list(
+            data[data[parsed.group_column] == unique_groups[1]][
+                parsed.value_column
+            ].values
+        )
 
-        if method == 'non-parametric':
+        if method == "non-parametric":
             return mann_whitney_u(g1, g2, alpha=alpha, alternative=alternative)
 
-        equal_var = kwargs.get('equal_var', True)
-        return two_sample_ttest(g1, g2, alpha=alpha, alternative=alternative, equal_var=equal_var)
+        equal_var = kwargs.get("equal_var", True)
+        return two_sample_ttest(
+            g1, g2, alpha=alpha, alternative=alternative, equal_var=equal_var
+        )
 
     # ── paired t-test ─────────────────────────────────────────────
     elif parsed.test_type == "paired_ttest":
-        before = kwargs.get('before')
-        after  = kwargs.get('after')
+        before = kwargs.get("before")
+        after = kwargs.get("after")
         if before is None or after is None:
-            raise ValueError("Paired t-test requires 'before' and 'after' keyword arguments")
-        if method == 'non-parametric':
-            return wilcoxon_signed_rank(before, after, alpha=alpha, alternative=alternative)
+            raise ValueError(
+                "Paired t-test requires 'before' and 'after' keyword arguments"
+            )
+        if method == "non-parametric":
+            return wilcoxon_signed_rank(
+                before, after, alpha=alpha, alternative=alternative
+            )
         return paired_ttest(before, after, alpha=alpha, alternative=alternative)
 
     # ── one-way ANOVA / Kruskal-Wallis ────────────────────────────
@@ -198,20 +247,28 @@ def test(hypothesis: str, data=None, **kwargs):
             list(data[data[parsed.group_column] == g][parsed.value_column].values)
             for g in data[parsed.group_column].unique()
         ]
-        if method == 'non-parametric':
+        if method == "non-parametric":
             return kruskal_wallis(*groups, alpha=alpha)
         return anova_one_way(*groups, alpha=alpha)
 
     # ── chi-square test of independence ──────────────────────────
     elif parsed.test_type == "chi_square":
         if data is None or parsed.group_column is None or parsed.value_column is None:
-            raise ValueError("Data with two categorical columns required for chi-square test")
+            raise ValueError(
+                "Data with two categorical columns required for chi-square test"
+            )
 
         row_vals = list(data[parsed.group_column].unique())
         col_vals = list(data[parsed.value_column].unique())
         table = [
-            [int((data[data[parsed.group_column] == r][parsed.value_column] == c).sum())
-             for c in col_vals]
+            [
+                int(
+                    (
+                        data[data[parsed.group_column] == r][parsed.value_column] == c
+                    ).sum()
+                )
+                for c in col_vals
+            ]
             for r in row_vals
         ]
         return chi_square_test(table, alpha=alpha)
@@ -225,14 +282,19 @@ def test(hypothesis: str, data=None, **kwargs):
             x = list(data[parsed.group_column].values)
             y = list(data[parsed.value_column].values)
         else:
-            num_cols = [col for col in data.columns
-                        if str(data[col].dtype) in ('int64', 'float64', 'int32', 'float32')]
+            num_cols = [
+                col
+                for col in data.columns
+                if str(data[col].dtype) in ("int64", "float64", "int32", "float32")
+            ]
             if len(num_cols) < 2:
-                raise ValueError("Need at least two numeric columns for a correlation test")
+                raise ValueError(
+                    "Need at least two numeric columns for a correlation test"
+                )
             x = list(data[num_cols[0]].values)
             y = list(data[num_cols[1]].values)
 
-        if method == 'non-parametric':
+        if method == "non-parametric":
             return spearman_correlation(x, y, alpha=alpha, alternative=alternative)
         return pearson_correlation(x, y, alpha=alpha, alternative=alternative)
 
@@ -241,6 +303,7 @@ def test(hypothesis: str, data=None, **kwargs):
 
 
 # ── Convenience wrappers ──────────────────────────────────────────────────────
+
 
 def ttest_1samp(data, mu=0.0, **kwargs):
     """One-sample t-test.  See ``one_sample_ttest`` for full docs."""
@@ -267,7 +330,7 @@ def ttest_paired(before, after, **kwargs):
 
 def welch_ttest(group1, group2, **kwargs):
     """Welch's t-test (unequal variances).  Shortcut for ttest_2samp with equal_var=False."""
-    kwargs['equal_var'] = False
+    kwargs["equal_var"] = False
     return ttest_2samp(group1, group2, **kwargs)
 
 
@@ -337,13 +400,14 @@ def pointbiserial(continuous, binary, **kwargs):
 
 # ── Internal utility ──────────────────────────────────────────────────────────
 
+
 def _coerce_to_list(data, name: str = "data"):
     """Convert pandas Series / array-like to a plain Python list."""
     if isinstance(data, list):
         return data
-    if hasattr(data, 'tolist'):      # numpy array or pandas Series
+    if hasattr(data, "tolist"):  # numpy array or pandas Series
         return data.tolist()
-    if hasattr(data, 'values'):      # pandas Series fallback
+    if hasattr(data, "values"):  # pandas Series fallback
         return list(data.values)
     try:
         return list(data)
@@ -426,28 +490,65 @@ __all__ = [
     "ChiSquare",
     "F",
     # Assumption checks
-    "shapiro_wilk", "levene_test", "bartlett_test", "jarque_bera",
-    "check_normality", "check_equal_variances",
+    "shapiro_wilk",
+    "levene_test",
+    "bartlett_test",
+    "jarque_bera",
+    "check_normality",
+    "check_equal_variances",
     # Power analysis
-    "power_ttest_one_sample", "power_ttest_two_sample", "power_ttest_paired",
-    "power_anova", "power_chi_square", "power_correlation", "power_summary",
+    "power_ttest_one_sample",
+    "power_ttest_two_sample",
+    "power_ttest_paired",
+    "power_anova",
+    "power_chi_square",
+    "power_correlation",
+    "power_summary",
     # Sample size
-    "n_ttest_one_sample", "n_ttest_two_sample", "n_ttest_paired",
-    "n_anova", "n_chi_square", "n_correlation", "sample_size_summary",
+    "n_ttest_one_sample",
+    "n_ttest_two_sample",
+    "n_ttest_paired",
+    "n_anova",
+    "n_chi_square",
+    "n_correlation",
+    "sample_size_summary",
     # Descriptive stats
-    "DescriptiveStats", "describe",
-    "five_number_summary", "detect_outliers", "frequency_table", "compare_groups",
+    "DescriptiveStats",
+    "describe",
+    "five_number_summary",
+    "detect_outliers",
+    "frequency_table",
+    "compare_groups",
     # Bootstrap
-    "bootstrap_ci", "bootstrap_two_sample_ci", "bootstrap_mean_ci",
-    "bootstrap_test", "permutation_test",
+    "bootstrap_ci",
+    "bootstrap_two_sample_ci",
+    "bootstrap_mean_ci",
+    "bootstrap_test",
+    "permutation_test",
     # Reporting
-    "apa_report", "text_report", "batch_report", "export_csv",
-    "format_p", "format_ci", "format_effect", "apa_stat",
+    "apa_report",
+    "text_report",
+    "batch_report",
+    "export_csv",
+    "format_p",
+    "format_ci",
+    "format_effect",
+    "apa_stat",
     "effect_interpretation_table",
     # Utils
-    "coerce_numeric", "detect_missing", "drop_missing",
-    "group_by", "split_groups", "validate_sample_data",
-    "summary_table", "are_paired",
-    "standardize", "normalize", "winsorize", "log_transform",
-    "rank_transform", "center", "robust_scale",
+    "coerce_numeric",
+    "detect_missing",
+    "drop_missing",
+    "group_by",
+    "split_groups",
+    "validate_sample_data",
+    "summary_table",
+    "are_paired",
+    "standardize",
+    "normalize",
+    "winsorize",
+    "log_transform",
+    "rank_transform",
+    "center",
+    "robust_scale",
 ]

@@ -1,23 +1,22 @@
 """
 Tests for hypotestx.stats — bootstrap, descriptive, distributions, inference.
 """
+
 import math
+import os
+import sys
+
 import pytest
-import sys, os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
+from hypotestx.math.statistics import mean as _mean
 from hypotestx.stats.bootstrap import (
     bootstrap_ci,
     bootstrap_mean_ci,
     bootstrap_two_sample_ci,
 )
-from hypotestx.stats.descriptive import (
-    DescriptiveStats,
-    describe,
-    frequency_table,
-)
-from hypotestx.math.statistics import mean as _mean
+from hypotestx.stats.descriptive import DescriptiveStats, describe, frequency_table
 
 
 def approx(a, b, tol=1e-4):

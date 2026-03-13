@@ -12,18 +12,30 @@ five_number_summary(data)      -> dict
 detect_outliers(data, method)  -> (indices, values, dict)
 frequency_table(data)          -> list of (value, count, pct) tuples
 """
-from typing import List, Dict, Tuple, Optional, Any
-from ..math.statistics import (
-    mean, median, mode, variance, std,
-    skewness, kurtosis, percentile, quartiles, iqr,
-    range_stat, mad, trimmed_mean,
-)
-from ..math.basic import sqrt, abs_value, ln
 
+from typing import Any, Dict, List, Optional, Tuple
+
+from ..math.basic import abs_value, ln, sqrt
+from ..math.statistics import (
+    iqr,
+    kurtosis,
+    mad,
+    mean,
+    median,
+    mode,
+    percentile,
+    quartiles,
+    range_stat,
+    skewness,
+    std,
+    trimmed_mean,
+    variance,
+)
 
 # ---------------------------------------------------------------------------
 # DescriptiveStats container
 # ---------------------------------------------------------------------------
+
 
 class DescriptiveStats:
     """
@@ -39,35 +51,35 @@ class DescriptiveStats:
     def __init__(self, data: List[float], name: str = "data"):
         self.name = name
         data = sorted(float(x) for x in data)
-        n    = len(data)
+        n = len(data)
         if n == 0:
             raise ValueError("Cannot compute descriptive statistics on empty data")
 
-        self.n    = n
+        self.n = n
         self.data = data
 
-        self.mean   = mean(data)
+        self.mean = mean(data)
         self.median = median(data)
 
         _mode = mode(data)
-        self.mode = _mode[0] if len(_mode) == 1 else _mode   # scalar if unimodal
+        self.mode = _mode[0] if len(_mode) == 1 else _mode  # scalar if unimodal
 
-        self.std      = std(data) if n >= 2 else 0.0
+        self.std = std(data) if n >= 2 else 0.0
         self.variance = variance(data) if n >= 2 else 0.0
-        self.sem      = self.std / sqrt(n) if n >= 2 else 0.0
+        self.sem = self.std / sqrt(n) if n >= 2 else 0.0
 
-        self.min   = data[0]
-        self.max   = data[-1]
+        self.min = data[0]
+        self.max = data[-1]
         self.range = range_stat(data)
 
         self.q1, self.q2, self.q3 = quartiles(data)
-        self.iqr  = iqr(data)
-        self.mad  = mad(data)
+        self.iqr = iqr(data)
+        self.mad = mad(data)
 
         self.skewness = skewness(data) if n >= 3 else 0.0
-        self.kurtosis = kurtosis(data) if n >= 4 else 0.0   # excess kurtosis
+        self.kurtosis = kurtosis(data) if n >= 4 else 0.0  # excess kurtosis
 
-        self.cv           = (self.std / self.mean * 100.0) if self.mean != 0 else float("nan")
+        self.cv = (self.std / self.mean * 100.0) if self.mean != 0 else float("nan")
         self.trimmed_mean = trimmed_mean(data, 0.10) if n >= 4 else self.mean
 
         # Percentiles
@@ -85,7 +97,11 @@ class DescriptiveStats:
             f"  std               : {self.std:.4f}",
             f"  SEM               : {self.sem:.4f}",
             f"  variance          : {self.variance:.4f}",
-            f"  CV (%)            : {self.cv:.2f}" if self.cv == self.cv else "  CV (%)            : N/A",
+            (
+                f"  CV (%)            : {self.cv:.2f}"
+                if self.cv == self.cv
+                else "  CV (%)            : N/A"
+            ),
             f"  min               : {self.min:.4f}",
             f"  Q1 (25%)          : {self.q1:.4f}",
             f"  median            : {self.median:.4f}",
@@ -136,13 +152,16 @@ class DescriptiveStats:
         return self.summary()
 
     def __repr__(self) -> str:
-        return (f"DescriptiveStats(name='{self.name}', n={self.n}, "
-                f"mean={self.mean:.4f}, std={self.std:.4f})")
+        return (
+            f"DescriptiveStats(name='{self.name}', n={self.n}, "
+            f"mean={self.mean:.4f}, std={self.std:.4f})"
+        )
 
 
 # ---------------------------------------------------------------------------
 # Module-level convenience function
 # ---------------------------------------------------------------------------
+
 
 def describe(
     data: List[float],
@@ -172,6 +191,7 @@ def describe(
 # Five-number summary
 # ---------------------------------------------------------------------------
 
+
 def five_number_summary(data: List[float]) -> Dict[str, float]:
     """
     Return {min, Q1, median, Q3, max}.
@@ -189,17 +209,18 @@ def five_number_summary(data: List[float]) -> Dict[str, float]:
         raise ValueError("five_number_summary requires at least 2 data points")
     q1, q2, q3 = quartiles(data)
     return {
-        "min":    min(data),
-        "q1":     q1,
+        "min": min(data),
+        "q1": q1,
         "median": q2,
-        "q3":     q3,
-        "max":    max(data),
+        "q3": q3,
+        "max": max(data),
     }
 
 
 # ---------------------------------------------------------------------------
 # Outlier detection
 # ---------------------------------------------------------------------------
+
 
 def detect_outliers(
     data: List[float],
@@ -224,28 +245,32 @@ def detect_outliers(
         meta    : dict with bounds or thresholds used
     """
     data = [float(x) for x in data]
-    n    = len(data)
+    n = len(data)
     method = method.lower()
 
     if method == "iqr":
         q1, _, q3 = quartiles(data)
-        _iqr      = q3 - q1
-        lower     = q1 - threshold * _iqr
-        upper     = q3 + threshold * _iqr
-        indices   = [i for i, x in enumerate(data) if x < lower or x > upper]
-        meta      = {"lower_bound": lower, "upper_bound": upper,
-                     "iqr": _iqr, "threshold": threshold}
+        _iqr = q3 - q1
+        lower = q1 - threshold * _iqr
+        upper = q3 + threshold * _iqr
+        indices = [i for i, x in enumerate(data) if x < lower or x > upper]
+        meta = {
+            "lower_bound": lower,
+            "upper_bound": upper,
+            "iqr": _iqr,
+            "threshold": threshold,
+        }
 
     elif method == "zscore":
         if threshold == 1.5:
-            threshold = 3.0   # sensible default for z-score
-        mu  = mean(data)
-        s   = std(data)
+            threshold = 3.0  # sensible default for z-score
+        mu = mean(data)
+        s = std(data)
         if s == 0:
             return [], [], {"mean": mu, "std": 0, "threshold": threshold}
-        z   = [(x - mu) / s for x in data]
+        z = [(x - mu) / s for x in data]
         indices = [i for i, zi in enumerate(z) if abs_value(zi) > threshold]
-        meta    = {"mean": mu, "std": s, "threshold": threshold}
+        meta = {"mean": mu, "std": s, "threshold": threshold}
 
     else:
         raise ValueError("method must be 'iqr' or 'zscore'")
@@ -258,6 +283,7 @@ def detect_outliers(
 # Frequency table
 # ---------------------------------------------------------------------------
 
+
 def frequency_table(
     data: List[float],
 ) -> List[Tuple[float, int, float]]:
@@ -269,17 +295,19 @@ def frequency_table(
     List of (value, count, percentage) tuples sorted by value.
     """
     from collections import Counter
+
     n = len(data)
     if n == 0:
         return []
     counts = Counter(data)
-    table  = [(v, c, 100.0 * c / n) for v, c in sorted(counts.items())]
+    table = [(v, c, 100.0 * c / n) for v, c in sorted(counts.items())]
     return table
 
 
 # ---------------------------------------------------------------------------
 # Comparison helper (compare multiple groups side-by-side)
 # ---------------------------------------------------------------------------
+
 
 def compare_groups(
     *groups: List[float],
@@ -304,11 +332,11 @@ def compare_groups(
 
     stats_list = [describe(g, name=names[i]) for i, g in enumerate(groups)]
 
-    keys  = ["n", "mean", "std", "median", "q1", "q3", "iqr", "skewness"]
+    keys = ["n", "mean", "std", "median", "q1", "q3", "iqr", "skewness"]
     col_w = max(max(len(n) for n in names), 10) + 2
     header = f"{'Statistic':<16}" + "".join(f"{n:>{col_w}}" for n in names)
-    sep    = "-" * len(header)
-    rows   = [header, sep]
+    sep = "-" * len(header)
+    rows = [header, sep]
 
     for key in keys:
         row = f"{key:<16}"
@@ -321,7 +349,10 @@ def compare_groups(
 
 
 __all__ = [
-    "DescriptiveStats", "describe",
-    "five_number_summary", "detect_outliers",
-    "frequency_table", "compare_groups",
+    "DescriptiveStats",
+    "describe",
+    "five_number_summary",
+    "detect_outliers",
+    "frequency_table",
+    "compare_groups",
 ]

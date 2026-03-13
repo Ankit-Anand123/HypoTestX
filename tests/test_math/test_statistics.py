@@ -1,13 +1,27 @@
 """
 Tests for hypotestx.math.statistics — descriptive statistics functions.
 """
+
 import math
+
 import pytest
 
 from hypotestx.math.statistics import (
-    mean, median, mode, variance, std, covariance, correlation,
-    skewness, kurtosis, percentile, quartiles, iqr, range_stat,
-    mad, trimmed_mean,
+    correlation,
+    covariance,
+    iqr,
+    kurtosis,
+    mad,
+    mean,
+    median,
+    mode,
+    percentile,
+    quartiles,
+    range_stat,
+    skewness,
+    std,
+    trimmed_mean,
+    variance,
 )
 
 
@@ -16,8 +30,8 @@ def approx(a, b, tol=1e-6):
 
 
 SYMMETRIC = [1.0, 2.0, 3.0, 4.0, 5.0]
-UNIFORM   = [2.0, 2.0, 2.0, 2.0, 2.0]
-SKEWED    = [1.0, 1.0, 1.0, 2.0, 10.0]
+UNIFORM = [2.0, 2.0, 2.0, 2.0, 2.0]
+SKEWED = [1.0, 1.0, 1.0, 2.0, 10.0]
 
 
 class TestMean:
@@ -178,6 +192,6 @@ class TestTrimmedMean:
         assert approx(trimmed_mean(data, 0.0), mean(data))
 
     def test_reduces_outlier_effect(self):
-        with_outlier    = [1.0, 2.0, 3.0, 4.0, 100.0]
+        with_outlier = [1.0, 2.0, 3.0, 4.0, 100.0]
         without_trimmed = trimmed_mean(with_outlier, 0.2)
         assert without_trimmed < mean(with_outlier)

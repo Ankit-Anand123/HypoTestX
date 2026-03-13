@@ -1,11 +1,12 @@
 """
 Unit tests for hypotestx.core.result.HypoResult
 """
-import sys
+
 import os
+import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.core.result import HypoResult
 
@@ -135,5 +136,5 @@ class TestHypoResultRepr(unittest.TestCase):
         self.assertIn("Mann-Whitney U", repr(r))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

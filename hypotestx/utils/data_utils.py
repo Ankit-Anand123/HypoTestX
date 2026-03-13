@@ -12,13 +12,15 @@ validate_sample_data(data, min_size)  -> raise or return cleaned list
 summary_table(*groups, names)         -> str   one-line stats per group
 are_paired(a, b)                      -> bool  (same length, plausibly paired)
 """
-from typing import Any, Dict, List, Optional, Tuple, Union
-from ..math.statistics import mean, std, median
 
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from ..math.statistics import mean, median, std
 
 # ---------------------------------------------------------------------------
 # Type coercion
 # ---------------------------------------------------------------------------
+
 
 def coerce_numeric(
     data: List[Any],
@@ -45,7 +47,7 @@ def coerce_numeric(
     [1.0, 2.5, 3.0]
     """
     result = []
-    bad    = []
+    bad = []
     for i, v in enumerate(data):
         if v is None or (isinstance(v, float) and v != v):  # None or NaN
             bad.append(i)
@@ -60,13 +62,14 @@ def coerce_numeric(
                     f"{name}: cannot convert value {v!r} at index {i} to float"
                 )
     if bad and not drop_invalid:
-        pass   # already raised above
+        pass  # already raised above
     return result
 
 
 # ---------------------------------------------------------------------------
 # Missing value handling
 # ---------------------------------------------------------------------------
+
 
 def detect_missing(data: List[Any]) -> Tuple[int, List[int]]:
     """
@@ -80,7 +83,7 @@ def detect_missing(data: List[Any]) -> Tuple[int, List[int]]:
     for i, v in enumerate(data):
         if v is None:
             indices.append(i)
-        elif isinstance(v, float) and v != v:   # NaN check
+        elif isinstance(v, float) and v != v:  # NaN check
             indices.append(i)
     return len(indices), indices
 
@@ -114,9 +117,9 @@ def drop_missing(
     if len(set(lengths)) != 1:
         raise ValueError("All columns must have the same length")
 
-    n_rows   = lengths[0]
-    keep     = []
-    n_drop   = 0
+    n_rows = lengths[0]
+    keep = []
+    n_drop = 0
     for i in range(n_rows):
         row_missing = False
         for col in columns:
@@ -136,6 +139,7 @@ def drop_missing(
 # ---------------------------------------------------------------------------
 # Group operations
 # ---------------------------------------------------------------------------
+
 
 def group_by(
     data: List[float],
@@ -186,6 +190,7 @@ def split_groups(*args) -> List[List[float]]:
 # Validation
 # ---------------------------------------------------------------------------
 
+
 def validate_sample_data(
     data: List[Any],
     min_size: int = 2,
@@ -222,6 +227,7 @@ def validate_sample_data(
 # Summary table
 # ---------------------------------------------------------------------------
 
+
 def summary_table(
     *groups: List[float],
     names: Optional[List[str]] = None,
@@ -242,10 +248,11 @@ def summary_table(
         names = [f"Group {i + 1}" for i in range(len(groups))]
 
     col_w = max(max(len(n) for n in names), 8) + 2
-    header = (f"{'Group':<{col_w}}"
-              f"{'n':>6}{'mean':>10}{'std':>10}{'min':>10}{'max':>10}")
-    sep    = "-" * len(header)
-    rows   = [header, sep]
+    header = (
+        f"{'Group':<{col_w}}" f"{'n':>6}{'mean':>10}{'std':>10}{'min':>10}{'max':>10}"
+    )
+    sep = "-" * len(header)
+    rows = [header, sep]
 
     for name, g in zip(names, groups):
         g = [float(x) for x in g]
@@ -265,6 +272,7 @@ def summary_table(
 # Paired-data check
 # ---------------------------------------------------------------------------
 
+
 def are_paired(a: List[Any], b: List[Any]) -> bool:
     """
     Return True if a and b have the same length (necessary condition for pairing).
@@ -273,7 +281,12 @@ def are_paired(a: List[Any], b: List[Any]) -> bool:
 
 
 __all__ = [
-    "coerce_numeric", "detect_missing", "drop_missing",
-    "group_by", "split_groups", "validate_sample_data",
-    "summary_table", "are_paired",
+    "coerce_numeric",
+    "detect_missing",
+    "drop_missing",
+    "group_by",
+    "split_groups",
+    "validate_sample_data",
+    "summary_table",
+    "are_paired",
 ]

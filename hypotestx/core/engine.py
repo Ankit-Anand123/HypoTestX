@@ -28,19 +28,21 @@ Or to get only HypoTestX messages::
 
     logging.getLogger("hypotestx").setLevel(logging.DEBUG)
 """
+
 from __future__ import annotations
 
 import logging
 from typing import Any, Dict, List, Optional
 
-from .result import HypoResult
 from .exceptions import HypoTestXError
+from .result import HypoResult
 
 _log = logging.getLogger("hypotestx")
 
 # --------------------------------------------------------------------------- #
 #  Internal helpers – DataFrame abstraction (pandas *or* polars, no import)   #
 # --------------------------------------------------------------------------- #
+
 
 def _col_to_list(df: Any, col: str) -> List:
     """
@@ -123,9 +125,7 @@ def _extract_groups(
     return groups
 
 
-def _build_contingency_table(
-    df: Any, row_col: str, col_col: str
-) -> List[List[int]]:
+def _build_contingency_table(df: Any, row_col: str, col_col: str) -> List[List[int]]:
     """
     Build a cross-tabulation (contingency table) from two categorical columns.
 
@@ -154,32 +154,54 @@ def _build_contingency_table(
 
 # Tests that need two explicit column specs (x_column + y_column OR
 # group_column + value_column).
-_TESTS_NEEDING_TWO_COLS = frozenset({
-    "two_sample_ttest", "student_ttest", "welch_ttest",
-    "mann_whitney", "mann_whitney_u",
-    "pearson", "pearson_correlation",
-    "spearman", "spearman_correlation",
-    "point_biserial", "point_biserial_correlation",
-    "chi_square", "chi_square_test", "chi2",
-    "fisher", "fisher_exact", "fisher_exact_test",
-})
+_TESTS_NEEDING_TWO_COLS = frozenset(
+    {
+        "two_sample_ttest",
+        "student_ttest",
+        "welch_ttest",
+        "mann_whitney",
+        "mann_whitney_u",
+        "pearson",
+        "pearson_correlation",
+        "spearman",
+        "spearman_correlation",
+        "point_biserial",
+        "point_biserial_correlation",
+        "chi_square",
+        "chi_square_test",
+        "chi2",
+        "fisher",
+        "fisher_exact",
+        "fisher_exact_test",
+    }
+)
 
 # Tests that need a group column + value column (at least 2 groups).
-_TESTS_NEEDING_GROUP_COL = frozenset({
-    "anova", "anova_one_way", "one_way_anova",
-    "kruskal_wallis", "kruskal",
-})
+_TESTS_NEEDING_GROUP_COL = frozenset(
+    {
+        "anova",
+        "anova_one_way",
+        "one_way_anova",
+        "kruskal_wallis",
+        "kruskal",
+    }
+)
 
 # Tests that accept a single value column.
-_TESTS_NEEDING_ONE_COL = frozenset({
-    "one_sample_ttest",
-    "wilcoxon", "wilcoxon_signed_rank",
-})
+_TESTS_NEEDING_ONE_COL = frozenset(
+    {
+        "one_sample_ttest",
+        "wilcoxon",
+        "wilcoxon_signed_rank",
+    }
+)
 
 # Tests that explicitly need paired x/y columns.
-_TESTS_NEEDING_PAIRED = frozenset({
-    "paired_ttest",
-})
+_TESTS_NEEDING_PAIRED = frozenset(
+    {
+        "paired_ttest",
+    }
+)
 
 
 def _validate_routing_columns(routing, df: Any, test: str) -> None:
@@ -205,10 +227,10 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
 
     # Check all nominated columns actually exist
     for attr, label in [
-        ("x_column",      "x_column"),
-        ("y_column",      "y_column"),
-        ("value_column",  "value_column"),
-        ("group_column",  "group_column"),
+        ("x_column", "x_column"),
+        ("y_column", "y_column"),
+        ("value_column", "value_column"),
+        ("group_column", "group_column"),
     ]:
         col = getattr(routing, attr, None)
         if col:
@@ -227,8 +249,12 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_TWO_COLS:
-        has_xy    = getattr(routing, "x_column", None) and getattr(routing, "y_column", None)
-        has_group = getattr(routing, "group_column", None) and getattr(routing, "value_column", None)
+        has_xy = getattr(routing, "x_column", None) and getattr(
+            routing, "y_column", None
+        )
+        has_group = getattr(routing, "group_column", None) and getattr(
+            routing, "value_column", None
+        )
         if not has_xy and not has_group:
             raise ValueError(
                 f"'{test}' requires either (x_column + y_column) or "
@@ -241,7 +267,9 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_GROUP_COL:
-        if not getattr(routing, "group_column", None) or not getattr(routing, "value_column", None):
+        if not getattr(routing, "group_column", None) or not getattr(
+            routing, "value_column", None
+        ):
             raise ValueError(
                 f"'{test}' requires group_column and value_column in the routing "
                 f"result.  "
@@ -252,9 +280,8 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_ONE_COL:
-        col = (
-            getattr(routing, "value_column", None)
-            or getattr(routing, "x_column", None)
+        col = getattr(routing, "value_column", None) or getattr(
+            routing, "x_column", None
         )
         if not col:
             raise ValueError(
@@ -271,6 +298,7 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
 #  Dispatch table                                                               #
 # --------------------------------------------------------------------------- #
 
+
 def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
     """
     Execute the test specified by *routing* against *df*.
@@ -278,40 +306,44 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
     Imports are done lazily inside the function so that the top-level
     ``hypotestx`` package does not incur circular-import risks during loading.
     """
-    from ..tests.parametric import (
-        one_sample_ttest,
-        two_sample_ttest,
-        paired_ttest,
-        anova_one_way,
-    )
-    from ..tests.nonparametric import (
-        mann_whitney_u,
-        wilcoxon_signed_rank,
-        kruskal_wallis,
-    )
+    from ..tests.categorical import chi_square_test, fisher_exact_test
     from ..tests.correlation import (
         pearson_correlation,
-        spearman_correlation,
         point_biserial_correlation,
+        spearman_correlation,
     )
-    from ..tests.categorical import chi_square_test, fisher_exact_test
+    from ..tests.nonparametric import (
+        kruskal_wallis,
+        mann_whitney_u,
+        wilcoxon_signed_rank,
+    )
+    from ..tests.parametric import (
+        anova_one_way,
+        one_sample_ttest,
+        paired_ttest,
+        two_sample_ttest,
+    )
 
-    test      = routing.test or "two_sample_ttest"
-    alt       = routing.alternative or "two-sided"
+    test = routing.test or "two_sample_ttest"
+    alt = routing.alternative or "two-sided"
     eff_alpha = routing.alpha if routing.alpha not in (None, 0.0) else alpha
-    mu        = routing.mu if routing.mu is not None else 0.0
+    mu = routing.mu if routing.mu is not None else 0.0
     equal_var = routing.equal_var if routing.equal_var is not None else True
 
     _log.debug(
         "Routing resolved: test=%r, alternative=%r, alpha=%s, confidence=%s",
-        test, alt, eff_alpha,
+        test,
+        alt,
+        eff_alpha,
         getattr(routing, "confidence", "n/a"),
     )
     if getattr(routing, "reasoning", None):
         _log.debug("Routing reasoning: %s", routing.reasoning)
 
     if verbose:
-        print(f"[HypoTestX] Routing -> test={test!r}, confidence={getattr(routing, 'confidence', 'n/a')}")
+        print(
+            f"[HypoTestX] Routing -> test={test!r}, confidence={getattr(routing, 'confidence', 'n/a')}"
+        )
         if getattr(routing, "reasoning", None):
             print(f"[HypoTestX] Reasoning: {routing.reasoning}")
 
@@ -335,7 +367,8 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
         groups = _resolve_two_groups(routing, df, test_name=test)
         g1, g2 = groups
         return two_sample_ttest(
-            g1, g2,
+            g1,
+            g2,
             alpha=eff_alpha,
             alternative=alt,
             equal_var=(not test.startswith("welch")) and equal_var,
@@ -375,7 +408,9 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
             return wilcoxon_signed_rank(x, y=y, mu=mu, alpha=eff_alpha, alternative=alt)
         col = routing.value_column or routing.x_column
         if not col:
-            raise ValueError("wilcoxon_signed_rank requires value_column or x_column/y_column")
+            raise ValueError(
+                "wilcoxon_signed_rank requires value_column or x_column/y_column"
+            )
         data = [float(v) for v in _col_to_list(df, col)]
         return wilcoxon_signed_rank(data, mu=mu, alpha=eff_alpha, alternative=alt)
 
@@ -445,6 +480,7 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
     # Unknown – fall back to two-sample t-test with a warning             #
     # ------------------------------------------------------------------ #
     import warnings
+
     warnings.warn(
         f"Unknown test key '{test}'; falling back to two_sample_ttest. "
         "If the routing was correct, please open an issue.",
@@ -460,6 +496,7 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
 #  Column-resolution helpers                                                   #
 # --------------------------------------------------------------------------- #
 
+
 def _resolve_two_groups(routing, df: Any, test_name: str) -> List[List[float]]:
     """
     Return [group1_values, group2_values] from the routing result.
@@ -471,7 +508,9 @@ def _resolve_two_groups(routing, df: Any, test_name: str) -> List[List[float]]:
     """
     if routing.group_column and routing.value_column:
         gv = list(routing.group_values or [])
-        groups_dict = _extract_groups(df, routing.group_column, routing.value_column, gv or None)
+        groups_dict = _extract_groups(
+            df, routing.group_column, routing.value_column, gv or None
+        )
         vals = list(groups_dict.values())
         if len(vals) < 2:
             raise ValueError(
@@ -498,7 +537,9 @@ def _resolve_all_groups(routing, df: Any, test_name: str) -> List[List[float]]:
     """
     if routing.group_column and routing.value_column:
         gv = list(routing.group_values or [])
-        groups_dict = _extract_groups(df, routing.group_column, routing.value_column, gv or None)
+        groups_dict = _extract_groups(
+            df, routing.group_column, routing.value_column, gv or None
+        )
         return list(groups_dict.values())
 
     raise ValueError(
@@ -536,16 +577,29 @@ def _resolve_xy_columns(routing, df: Any, test_name: str):
 #  Public entry-point                                                          #
 # --------------------------------------------------------------------------- #
 
-_BACKEND_KWARGS = frozenset({
-    # universal
-    "api_key", "model", "timeout", "temperature", "max_tokens",
-    # Ollama
-    "host", "options",
-    # HuggingFace
-    "token", "use_local", "device", "load_kwargs",
-    # OpenAI-compatible (groq / openai / together / mistral / perplexity / azure)
-    "base_url", "provider", "extra_headers", "api_version",
-})
+_BACKEND_KWARGS = frozenset(
+    {
+        # universal
+        "api_key",
+        "model",
+        "timeout",
+        "temperature",
+        "max_tokens",
+        # Ollama
+        "host",
+        "options",
+        # HuggingFace
+        "token",
+        "use_local",
+        "device",
+        "load_kwargs",
+        # OpenAI-compatible (groq / openai / together / mistral / perplexity / azure)
+        "base_url",
+        "provider",
+        "extra_headers",
+        "api_version",
+    }
+)
 
 
 def analyze(
@@ -717,7 +771,7 @@ def analyze(
     ...     backend=lambda msgs: my_llm_fn(msgs[-1]["content"]),
     ... )
     """
-    from .llm import get_backend, build_schema
+    from .llm import build_schema, get_backend
 
     # Separate backend-constructor kwargs from test kwargs.
     # ``backend_options`` is an explicit passthrough dict for backend-specific
@@ -731,17 +785,23 @@ def analyze(
 
     schema = build_schema(df)
 
-    _log.info("analyze() called: question=%r, backend=%s, rows=%s",
-              question, type(backend_instance).__name__, schema.n_rows)
+    _log.info(
+        "analyze() called: question=%r, backend=%s, rows=%s",
+        question,
+        type(backend_instance).__name__,
+        schema.n_rows,
+    )
     _log.debug("Schema columns: %s", schema.columns)
 
     if verbose:
-        print(f"[HypoTestX] Schema: {schema.n_rows} rows, "
-              f"columns: {schema.columns}")
+        print(
+            f"[HypoTestX] Schema: {schema.n_rows} rows, " f"columns: {schema.columns}"
+        )
         print(f"[HypoTestX] Backend: {type(backend_instance).__name__}")
         print(f"[HypoTestX] Question: {question!r}")
 
     import inspect as _inspect
+
     _route_sig = _inspect.signature(backend_instance.route)
     if "warn_fallback" in _route_sig.parameters:
         routing = backend_instance.route(question, schema, warn_fallback=warn_fallback)

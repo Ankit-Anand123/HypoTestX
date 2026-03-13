@@ -1,15 +1,16 @@
 """
 Unit tests for hypotestx.tests.categorical
 """
-import sys
+
 import os
+import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.tests.categorical import chi_square_test, fisher_exact_test
-from hypotestx.core.exceptions import InsufficientDataError, DataFormatError
+from hypotestx.core.exceptions import DataFormatError, InsufficientDataError
 from hypotestx.core.result import HypoResult
+from hypotestx.tests.categorical import chi_square_test, fisher_exact_test
 
 
 class TestChiSquareTest(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestChiSquareTest(unittest.TestCase):
         # Clearly different proportions
         self.table_sig = [[50, 10], [10, 50]]
         # Nearly even — expectation of no association
-        self.table_ns  = [[25, 25], [25, 25]]
+        self.table_ns = [[25, 25], [25, 25]]
 
     def test_returns_hyporesult(self):
         r = chi_square_test(self.table_sig)
@@ -63,7 +64,7 @@ class TestChiSquareTest(unittest.TestCase):
 
     def test_invalid_table_raises(self):
         with self.assertRaises(Exception):
-            chi_square_test([[5]])   # 1x1 table
+            chi_square_test([[5]])  # 1x1 table
 
     def test_zero_cell(self):
         # Zero cell should not raise but may warn
@@ -76,7 +77,7 @@ class TestFisherExactTest(unittest.TestCase):
 
     def setUp(self):
         self.table_sig = [[14, 0], [1, 11]]
-        self.table_ns  = [[10, 10], [10, 10]]
+        self.table_ns = [[10, 10], [10, 10]]
 
     def test_returns_hyporesult(self):
         r = fisher_exact_test(self.table_sig)
@@ -106,5 +107,5 @@ class TestFisherExactTest(unittest.TestCase):
             fisher_exact_test([[5, 5, 5], [5, 5, 5]])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

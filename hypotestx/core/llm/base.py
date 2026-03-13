@@ -22,6 +22,7 @@ You can also pass any callable that accepts ``(messages: list) -> str``:
 
     result = hx.analyze(df, "...", backend=my_chat_fn)
 """
+
 from __future__ import annotations
 
 import json
@@ -30,10 +31,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-
 # ---------------------------------------------------------------------------
 # Structured routing result
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class RoutingResult:
@@ -42,31 +43,32 @@ class RoutingResult:
     parser.  The engine uses this to fetch the correct columns from the
     DataFrame and call the right test function.
     """
+
     # Which statistical test to run
-    test: str = ""                     # e.g. "two_sample_ttest"
+    test: str = ""  # e.g. "two_sample_ttest"
 
     # Column names in the dataframe
     value_column: Optional[str] = None  # the numeric / response variable
     group_column: Optional[str] = None  # the grouping / categorical variable
-    x_column: Optional[str] = None     # alias for first var in correlation
-    y_column: Optional[str] = None     # alias for second var in correlation
+    x_column: Optional[str] = None  # alias for first var in correlation
+    y_column: Optional[str] = None  # alias for second var in correlation
 
     # Specific group labels to compare (subset of group_column's values)
     group_values: Optional[List[str]] = None  # e.g. ["Male", "Female"]
 
     # Test parameters
-    alternative: str = "two-sided"     # "two-sided" | "greater" | "less"
-    alpha: Optional[float] = None     # None means "use analyze()'s alpha"
-    mu: Optional[float] = None         # hypothesised mean (one-sample t-test)
-    equal_var: bool = False            # Student vs Welch
-    correction: bool = True            # Yates correction for chi-square
-    method: str = "parametric"        # "parametric" | "non-parametric"
+    alternative: str = "two-sided"  # "two-sided" | "greater" | "less"
+    alpha: Optional[float] = None  # None means "use analyze()'s alpha"
+    mu: Optional[float] = None  # hypothesised mean (one-sample t-test)
+    equal_var: bool = False  # Student vs Welch
+    correction: bool = True  # Yates correction for chi-square
+    method: str = "parametric"  # "parametric" | "non-parametric"
 
     # Meta
     reasoning: str = ""  # LLM's explanation of its choice
-    confidence: float = 1.0           # 0.0–1.0; LLM = 1.0, regex fallback = 0.6
-    routing_source: str = "llm"       # "llm" or "fallback"
-    raw_response: str = ""             # full LLM output for debugging
+    confidence: float = 1.0  # 0.0–1.0; LLM = 1.0, regex fallback = 0.6
+    routing_source: str = "llm"  # "llm" or "fallback"
+    raw_response: str = ""  # full LLM output for debugging
 
 
 @dataclass
@@ -75,6 +77,7 @@ class SchemaInfo:
     Summary of a DataFrame passed to the LLM as context.
     Built by ``build_schema()`` in prompts.py.
     """
+
     columns: List[str] = field(default_factory=list)
     dtypes: Dict[str, str] = field(default_factory=dict)
     n_rows: int = 0
@@ -87,6 +90,7 @@ class SchemaInfo:
 # ---------------------------------------------------------------------------
 # Abstract base class
 # ---------------------------------------------------------------------------
+
 
 class LLMBackend(ABC):
     """
@@ -121,7 +125,7 @@ class LLMBackend(ABC):
     def route(
         self,
         question: str,
-        schema: "SchemaInfo",   # noqa: F821
+        schema: "SchemaInfo",  # noqa: F821
         extra_context: str = "",
         warn_fallback: bool = True,
     ) -> RoutingResult:
@@ -133,11 +137,11 @@ class LLMBackend(ABC):
         from .prompts import build_system_prompt, build_user_prompt  # local import
 
         system = build_system_prompt()
-        user   = build_user_prompt(question, schema, extra_context)
+        user = build_user_prompt(question, schema, extra_context)
 
         messages = [
             {"role": "system", "content": system},
-            {"role": "user",   "content": user},
+            {"role": "user", "content": user},
         ]
 
         try:
@@ -159,6 +163,7 @@ class LLMBackend(ABC):
 # Callable wrapper — lets users pass a plain function as backend
 # ---------------------------------------------------------------------------
 
+
 class CallableBackend(LLMBackend):
     """Wraps any ``callable(messages) -> str`` as an ``LLMBackend``."""
 
@@ -176,6 +181,7 @@ class CallableBackend(LLMBackend):
 # ---------------------------------------------------------------------------
 # JSON extraction helpers
 # ---------------------------------------------------------------------------
+
 
 def _parse_routing_json(raw: str) -> RoutingResult:
     """
@@ -212,39 +218,45 @@ def _json_to_result(json_str: str) -> RoutingResult:
         return _regex_fallback(json_str)
 
     r = RoutingResult()
-    r.test          = str(data.get("test", data.get("test_type", ""))).lower()
-    r.value_column  = data.get("value_column") or data.get("outcome_column")
-    r.group_column  = data.get("group_column") or data.get("grouping_column")
-    r.x_column      = data.get("x_column") or r.group_column
-    r.y_column      = data.get("y_column") or r.value_column
-    r.group_values  = data.get("group_values")
-    r.alternative   = str(data.get("alternative", "two-sided")).lower()
-    r.alpha         = float(data.get("alpha", 0.05))
-    r.mu            = (float(data["mu"]) if "mu" in data and data["mu"] is not None
-                       else None)
-    r.equal_var     = bool(data.get("equal_var", False))
-    r.correction    = bool(data.get("correction", True))
-    r.method        = str(data.get("method", "parametric")).lower()
-    r.reasoning     = str(data.get("reasoning", ""))
-    r.confidence    = float(data.get("confidence", 1.0))
+    r.test = str(data.get("test", data.get("test_type", ""))).lower()
+    r.value_column = data.get("value_column") or data.get("outcome_column")
+    r.group_column = data.get("group_column") or data.get("grouping_column")
+    r.x_column = data.get("x_column") or r.group_column
+    r.y_column = data.get("y_column") or r.value_column
+    r.group_values = data.get("group_values")
+    r.alternative = str(data.get("alternative", "two-sided")).lower()
+    r.alpha = float(data.get("alpha", 0.05))
+    r.mu = float(data["mu"]) if "mu" in data and data["mu"] is not None else None
+    r.equal_var = bool(data.get("equal_var", False))
+    r.correction = bool(data.get("correction", True))
+    r.method = str(data.get("method", "parametric")).lower()
+    r.reasoning = str(data.get("reasoning", ""))
+    r.confidence = float(data.get("confidence", 1.0))
     return r
 
 
 _TEST_KEYWORDS = {
-    "one_sample_ttest":  ["one.sample", "one_sample", "single.sample"],
-    "two_sample_ttest":  ["two.sample", "two_sample", "independent", "unpaired"],
-    "paired_ttest":      ["paired", "repeated", "before.after", "within"],
-    "anova":             ["anova", "one.way", "multiple.group", "three.or.more"],
-    "kruskal_wallis":    ["kruskal", "kruskal.wallis"],
-    "mann_whitney":      ["mann", "whitney", "wilcoxon.rank"],
-    "wilcoxon":          ["wilcoxon.signed", "signed.rank"],
-    "chi_square":        ["chi.square", "chi2", "categorical", "contingency",
-                          "association", "independence"],
-    "fisher":            ["fisher"],
-    "pearson":           ["pearson", "linear.corr"],
-    "spearman":          ["spearman", "rank.corr", "monotone"],
-    "correlation":       ["correlat"],
+    "one_sample_ttest": ["one.sample", "one_sample", "single.sample"],
+    "two_sample_ttest": ["two.sample", "two_sample", "independent", "unpaired"],
+    "paired_ttest": ["paired", "repeated", "before.after", "within"],
+    "anova": ["anova", "one.way", "multiple.group", "three.or.more"],
+    "kruskal_wallis": ["kruskal", "kruskal.wallis"],
+    "mann_whitney": ["mann", "whitney", "wilcoxon.rank"],
+    "wilcoxon": ["wilcoxon.signed", "signed.rank"],
+    "chi_square": [
+        "chi.square",
+        "chi2",
+        "categorical",
+        "contingency",
+        "association",
+        "independence",
+    ],
+    "fisher": ["fisher"],
+    "pearson": ["pearson", "linear.corr"],
+    "spearman": ["spearman", "rank.corr", "monotone"],
+    "correlation": ["correlat"],
 }
+
 
 def _regex_fallback(text: str) -> RoutingResult:
     """Last-resort regex scan of the raw LLM output."""

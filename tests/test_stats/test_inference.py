@@ -1,15 +1,19 @@
 """
 Tests for hypotestx.stats.inference — CIs and z-test.
 """
+
 import math
+import os
+import sys
+
 import pytest
-import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.stats.inference import (
+    confidence_interval_difference_of_means,
     confidence_interval_mean,
     confidence_interval_proportion,
-    confidence_interval_difference_of_means,
     z_test_one_sample,
 )
 
@@ -26,6 +30,7 @@ GROUP_B = [3.0, 4.0, 3.5, 4.5, 3.0, 4.0]
 # ---------------------------------------------------------------------------
 # confidence_interval_mean
 # ---------------------------------------------------------------------------
+
 
 class TestConfidenceIntervalMean:
     def test_returns_tuple(self):
@@ -74,6 +79,7 @@ class TestConfidenceIntervalMean:
 # confidence_interval_proportion
 # ---------------------------------------------------------------------------
 
+
 class TestConfidenceIntervalProportion:
     def test_wilson_returns_valid_range(self):
         lo, hi = confidence_interval_proportion(40, 100)
@@ -89,7 +95,7 @@ class TestConfidenceIntervalProportion:
 
     def test_zero_successes(self):
         lo, hi = confidence_interval_proportion(0, 100)
-        assert lo < 0.001   # Wilson CI lower bound near but not exactly 0
+        assert lo < 0.001  # Wilson CI lower bound near but not exactly 0
         assert hi >= 0.0
 
     def test_all_successes(self):
@@ -118,6 +124,7 @@ class TestConfidenceIntervalProportion:
 # confidence_interval_difference_of_means
 # ---------------------------------------------------------------------------
 
+
 class TestConfidenceIntervalDifferenceOfMeans:
     def test_returns_tuple(self):
         lo, hi = confidence_interval_difference_of_means(GROUP_A, GROUP_B)
@@ -144,6 +151,7 @@ class TestConfidenceIntervalDifferenceOfMeans:
 # ---------------------------------------------------------------------------
 # z_test_one_sample
 # ---------------------------------------------------------------------------
+
 
 class TestZTestOneSample:
     def test_returns_tuple(self):

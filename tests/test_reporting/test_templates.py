@@ -1,21 +1,24 @@
 """
 Tests for hypotestx.reporting.templates — render_apa, render_plain, render_one_line.
 """
+
+import os
+import sys
+
 import pytest
-import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.reporting.templates import (
     APA_TEMPLATES,
-    PLAIN_TEMPLATE,
     ONE_LINE_TEMPLATE,
-    render_apa,
-    render_plain,
-    render_one_line,
-    _significance_word,
+    PLAIN_TEMPLATE,
     _effect_size_str,
+    _significance_word,
+    render_apa,
+    render_one_line,
+    render_plain,
 )
-
 
 # Minimal context shared across tests
 BASIC_CTX = {
@@ -32,6 +35,7 @@ BASIC_CTX = {
 # _significance_word
 # ---------------------------------------------------------------------------
 
+
 class TestSignificanceWord:
     def test_significant_true(self):
         assert "significant" in _significance_word(True)
@@ -43,6 +47,7 @@ class TestSignificanceWord:
 # ---------------------------------------------------------------------------
 # _effect_size_str
 # ---------------------------------------------------------------------------
+
 
 class TestEffectSizeStr:
     def test_none_returns_na(self):
@@ -60,12 +65,21 @@ class TestEffectSizeStr:
 # APA_TEMPLATES existence
 # ---------------------------------------------------------------------------
 
+
 class TestTemplateRegistry:
     def test_all_expected_keys_present(self):
         expected = {
-            "two_sample_ttest", "one_sample_ttest", "paired_ttest",
-            "anova", "chi_square", "pearson", "spearman",
-            "mann_whitney", "kruskal_wallis", "fisher", "generic",
+            "two_sample_ttest",
+            "one_sample_ttest",
+            "paired_ttest",
+            "anova",
+            "chi_square",
+            "pearson",
+            "spearman",
+            "mann_whitney",
+            "kruskal_wallis",
+            "fisher",
+            "generic",
         }
         for key in expected:
             assert key in APA_TEMPLATES, f"Missing key: {key}"
@@ -78,6 +92,7 @@ class TestTemplateRegistry:
 # ---------------------------------------------------------------------------
 # render_apa
 # ---------------------------------------------------------------------------
+
 
 class TestRenderApa:
     def test_generic_fallback(self):
@@ -93,8 +108,11 @@ class TestRenderApa:
 
     def test_pearson_key(self):
         ctx = {
-            "x_column": "height", "y_column": "weight",
-            "df": 98, "statistic": 0.65, "p_value": 0.001,
+            "x_column": "height",
+            "y_column": "weight",
+            "df": 98,
+            "statistic": 0.65,
+            "p_value": 0.001,
             "is_significant": True,
         }
         result = render_apa("pearson", ctx)
@@ -104,9 +122,15 @@ class TestRenderApa:
     def test_two_sample_ttest_key(self):
         ctx = {
             "value_column": "salary",
-            "group1": "Male", "group2": "Female",
-            "mean1": 70.0, "sd1": 5.0, "mean2": 65.0, "sd2": 4.5,
-            "df": 98, "statistic": 2.5, "p_value": 0.014,
+            "group1": "Male",
+            "group2": "Female",
+            "mean1": 70.0,
+            "sd1": 5.0,
+            "mean2": 65.0,
+            "sd2": 4.5,
+            "df": 98,
+            "statistic": 2.5,
+            "p_value": 0.014,
             "is_significant": True,
         }
         result = render_apa("two_sample_ttest", ctx)
@@ -114,7 +138,9 @@ class TestRenderApa:
 
     def test_significance_word_injected(self):
         ctx = {
-            "test_name": "T", "statistic": 1.0, "p_value": 0.5,
+            "test_name": "T",
+            "statistic": 1.0,
+            "p_value": 0.5,
             "is_significant": False,
         }
         result = render_apa("generic", ctx)
@@ -122,8 +148,11 @@ class TestRenderApa:
 
     def test_effect_size_sentence_defaults_empty_when_none(self):
         ctx = {
-            "test_name": "T", "statistic": 1.0, "p_value": 0.5,
-            "is_significant": True, "effect_size": None,
+            "test_name": "T",
+            "statistic": 1.0,
+            "p_value": 0.5,
+            "is_significant": True,
+            "effect_size": None,
         }
         result = render_apa("generic", ctx)
         assert isinstance(result, str)
@@ -132,6 +161,7 @@ class TestRenderApa:
 # ---------------------------------------------------------------------------
 # render_plain
 # ---------------------------------------------------------------------------
+
 
 class TestRenderPlain:
     def test_returns_str(self):
@@ -166,6 +196,7 @@ class TestRenderPlain:
 # ---------------------------------------------------------------------------
 # render_one_line
 # ---------------------------------------------------------------------------
+
 
 class TestRenderOneLine:
     def test_returns_str(self):

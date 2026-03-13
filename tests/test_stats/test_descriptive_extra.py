@@ -2,21 +2,24 @@
 Additional tests for hypotestx.stats.descriptive to improve coverage.
 Tests DescriptiveStats fully, five_number_summary, detect_outliers, compare_groups.
 """
+
+import os
+import sys
+
 import pytest
-import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.stats.descriptive import (
     DescriptiveStats,
-    describe,
-    five_number_summary,
-    detect_outliers,
-    frequency_table,
     compare_groups,
+    describe,
+    detect_outliers,
+    five_number_summary,
+    frequency_table,
 )
 
-
-DATA   = [2.0, 4.0, 6.0, 8.0, 10.0, 3.0, 5.0, 7.0, 9.0, 1.0]
+DATA = [2.0, 4.0, 6.0, 8.0, 10.0, 3.0, 5.0, 7.0, 9.0, 1.0]
 SKEWED = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0, 10.0, 50.0, 100.0]
 WITH_OUTLIERS = [5.0, 5.5, 6.0, 5.8, 6.2, 5.9, 6.1, 5.7, 100.0, -80.0]
 
@@ -24,6 +27,7 @@ WITH_OUTLIERS = [5.0, 5.5, 6.0, 5.8, 6.2, 5.9, 6.1, 5.7, 100.0, -80.0]
 # ---------------------------------------------------------------------------
 # DescriptiveStats — attributes
 # ---------------------------------------------------------------------------
+
 
 class TestDescriptiveStatsAttributes:
     def setup_method(self):
@@ -69,6 +73,7 @@ class TestDescriptiveStatsAttributes:
 # DescriptiveStats — methods
 # ---------------------------------------------------------------------------
 
+
 class TestDescriptiveStatsMethods:
     def test_summary_returns_str(self):
         s = DescriptiveStats(DATA).summary()
@@ -86,7 +91,7 @@ class TestDescriptiveStatsMethods:
 
     def test_to_dict_values_match(self):
         ds = DescriptiveStats(DATA)
-        d  = ds.to_dict()
+        d = ds.to_dict()
         assert d["n"] == ds.n
         assert abs(d["mean"] - ds.mean) < 1e-12
 
@@ -107,6 +112,7 @@ class TestDescriptiveStatsMethods:
 # describe()
 # ---------------------------------------------------------------------------
 
+
 class TestDescribe:
     def test_returns_descriptive_stats(self):
         assert isinstance(describe(DATA), DescriptiveStats)
@@ -125,6 +131,7 @@ class TestDescribe:
 # ---------------------------------------------------------------------------
 # five_number_summary
 # ---------------------------------------------------------------------------
+
 
 class TestFiveNumberSummary:
     def test_returns_dict(self):
@@ -151,6 +158,7 @@ class TestFiveNumberSummary:
 # ---------------------------------------------------------------------------
 # detect_outliers — iqr method
 # ---------------------------------------------------------------------------
+
 
 class TestDetectOutliersIQR:
     def test_returns_indices_values_meta(self):
@@ -179,6 +187,7 @@ class TestDetectOutliersIQR:
 # detect_outliers — zscore method
 # ---------------------------------------------------------------------------
 
+
 class TestDetectOutliersZScore:
     def test_returns_indices_values_meta(self):
         idx, vals, meta = detect_outliers(SKEWED, method="zscore")
@@ -203,6 +212,7 @@ class TestDetectOutliersZScore:
 # ---------------------------------------------------------------------------
 # frequency_table
 # ---------------------------------------------------------------------------
+
 
 class TestFrequencyTable:
     def test_returns_list_of_tuples(self):
@@ -230,6 +240,7 @@ class TestFrequencyTable:
 # compare_groups
 # ---------------------------------------------------------------------------
 
+
 class TestCompareGroups:
     def test_returns_string(self):
         result = compare_groups(DATA, [1.0, 2.0, 3.0, 4.0, 5.0])
@@ -243,8 +254,9 @@ class TestCompareGroups:
         assert isinstance(result, str)
 
     def test_custom_names(self):
-        result = compare_groups(DATA, [1.0, 2.0, 3.0, 4.0, 5.0],
-                                names=["Control", "Treatment"])
+        result = compare_groups(
+            DATA, [1.0, 2.0, 3.0, 4.0, 5.0], names=["Control", "Treatment"]
+        )
         assert "Control" in result
         assert "Treatment" in result
 
