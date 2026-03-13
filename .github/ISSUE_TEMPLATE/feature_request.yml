@@ -1,0 +1,47 @@
+﻿name: Feature Request
+description: Propose a new statistical test, module, or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        HypoTestX is a **statistical hypothesis testing library**. Requests must be
+        directly related to hypothesis testing, statistical inference, power analysis,
+        reporting, or the NLP routing layer. Unrelated general-purpose features will
+        be closed without action.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: "e.g. There is no built-in test for comparing two proportions with small samples."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: |
+        Describe the test or feature. Which module would it live in?
+        (e.g. `hypotestx/tests/parametric.py`, `hypotestx/bayesian/`, `hypotestx/power/`)
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Link papers, textbooks, Wikipedia, or scipy docs that formally define the method.
+        All new statistical methods require at least one citable reference.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope_check
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: This request is directly related to statistical hypothesis testing or inference.
+          required: true

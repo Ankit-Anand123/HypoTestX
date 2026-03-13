@@ -1,0 +1,13 @@
+﻿# Global owner — required reviewer for all PRs
+* @Ankit-Anand123
+
+# Core engine and statistical implementations — extra scrutiny
+/hypotestx/core/       @Ankit-Anand123
+/hypotestx/tests/      @Ankit-Anand123
+/hypotestx/math/       @Ankit-Anand123
+/hypotestx/stats/      @Ankit-Anand123
+/hypotestx/bayesian/   @Ankit-Anand123
+
+# CI / release pipelines
+/.github/workflows/    @Ankit-Anand123
+/pyproject.toml        @Ankit-Anand123
