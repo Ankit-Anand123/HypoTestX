@@ -23,6 +23,7 @@ from hypotestx.power.analysis import (
 
 # ── error branches ────────────────────────────────────────────────────────────
 
+
 class TestPowerErrorBranches:
     def test_invalid_alternative_raises(self):
         with pytest.raises(ValueError, match="alternative"):
@@ -47,6 +48,7 @@ class TestPowerErrorBranches:
 
 # ── paired t-test ─────────────────────────────────────────────────────────────
 
+
 class TestPowerTTestPaired:
     def test_returns_float_in_01(self):
         result = power_ttest_paired(0.5, 30)
@@ -64,6 +66,7 @@ class TestPowerTTestPaired:
 
 
 # ── chi-square ────────────────────────────────────────────────────────────────
+
 
 class TestPowerChiSquare:
     def test_basic(self):
@@ -87,6 +90,7 @@ class TestPowerChiSquare:
 
 
 # ── correlation ───────────────────────────────────────────────────────────────
+
 
 class TestPowerCorrelation:
     def test_basic(self):
@@ -113,6 +117,7 @@ class TestPowerCorrelation:
 
 
 # ── power_summary ─────────────────────────────────────────────────────────────
+
 
 class TestPowerSummary:
     def test_one_sample_t(self):
