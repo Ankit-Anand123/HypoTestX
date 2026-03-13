@@ -13,7 +13,7 @@ All visualization functions require **matplotlib** (install with
 Reporting Functions
 -------------------
 
-.. autofunction:: hypotestx.reporting.generator.generate_report
+.. autofunction:: hypotestx.reporting.generator.text_report
 
 .. autofunction:: hypotestx.reporting.generator.export_html
 
@@ -21,7 +21,7 @@ Reporting Functions
 
 .. autofunction:: hypotestx.reporting.generator.export_csv
 
-.. autofunction:: hypotestx.reporting.formatters.apa_report
+.. autofunction:: hypotestx.reporting.generator.apa_report
 
 Usage Examples
 --------------
