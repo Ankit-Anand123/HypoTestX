@@ -20,7 +20,6 @@ from hypotestx.power.analysis import (
     power_ttest_two_sample,
 )
 
-
 # ── error branches ────────────────────────────────────────────────────────────
 
 
