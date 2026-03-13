@@ -67,23 +67,52 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     **kwargs
         Forwarded verbatim to the backend constructor.  Supported kwargs:
 
-        +-------------------+--------------------------------------+------------------------+
-        | kwarg             | backends                             | default                |
-        +===================+======================================+========================+
-        | ``api_key``       | gemini, openai, groq, together, …   | —                      |
-        | ``model``         | all                                  | provider default       |
-        | ``timeout``       | all                                  | 60 s                   |
-        | ``temperature``   | gemini, openai-compat, huggingface  | 0.0                    |
-        | ``max_tokens``    | gemini, openai-compat, huggingface  | 512                    |
-        | ``host``          | ollama                               | localhost:11434        |
-        | ``options``       | ollama                               | {"temperature": 0}     |
-        | ``token``         | huggingface                          | —                      |
-        | ``use_local``     | huggingface                          | False                  |
-        | ``device``        | huggingface (local)                  | "cpu"                  |
-        | ``base_url``      | openai-compat                        | provider default       |
-        | ``provider``      | openai-compat                        | "openai"               |
-        | ``extra_headers`` | openai-compat                        | None                   |
-        +-------------------+--------------------------------------+------------------------+
+        .. list-table::
+           :header-rows: 1
+           :widths: 18 38 22
+
+           * - kwarg
+             - backends
+             - default
+           * - ``api_key``
+             - gemini, openai, groq, together, ...
+             - (required)
+           * - ``model``
+             - all
+             - provider default
+           * - ``timeout``
+             - all
+             - 60 s
+           * - ``temperature``
+             - gemini, openai-compat, huggingface
+             - 0.0
+           * - ``max_tokens``
+             - gemini, openai-compat, huggingface
+             - 512
+           * - ``host``
+             - ollama
+             - localhost:11434
+           * - ``options``
+             - ollama
+             - {"temperature": 0}
+           * - ``token``
+             - huggingface
+             - (required)
+           * - ``use_local``
+             - huggingface
+             - False
+           * - ``device``
+             - huggingface (local)
+             - "cpu"
+           * - ``base_url``
+             - openai-compat
+             - provider default
+           * - ``provider``
+             - openai-compat
+             - "openai"
+           * - ``extra_headers``
+             - openai-compat
+             - None
 
     Examples
     --------
