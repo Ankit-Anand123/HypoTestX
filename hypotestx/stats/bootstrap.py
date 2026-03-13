@@ -60,9 +60,7 @@ def _bca_ci(
 
     Uses the acceleration (jackknife) and bias-correction factors.
     """
-    import math
 
-    from ..math.basic import ln
     from ..math.distributions import Normal
 
     n = len(data)
@@ -145,9 +143,7 @@ def bootstrap_ci(
 
     rng = random.Random(seed)
     observed = statistic_fn(data)
-    boot_stats = [
-        statistic_fn(_bootstrap_sample(data, rng)) for _ in range(n_resamples)
-    ]
+    boot_stats = [statistic_fn(_bootstrap_sample(data, rng)) for _ in range(n_resamples)]
 
     if method == "percentile":
         lower, upper = _percentile_ci(boot_stats, ci)
@@ -189,8 +185,12 @@ def bootstrap_two_sample_ci(
     """
     group1 = [float(x) for x in group1]
     group2 = [float(x) for x in group2]
+
+    def _default_diff(a: list, b: list) -> float:
+        return mean(a) - mean(b)
+
     if diff_fn is None:
-        diff_fn = lambda a, b: mean(a) - mean(b)
+        diff_fn = _default_diff
 
     rng = random.Random(seed)
     n1, n2 = len(group1), len(group2)
@@ -223,9 +223,7 @@ def bootstrap_mean_ci(
     -------
     (lower, upper)
     """
-    lower, upper, _ = bootstrap_ci(
-        data, mean, n_resamples=n_resamples, ci=ci, seed=seed
-    )
+    lower, upper, _ = bootstrap_ci(data, mean, n_resamples=n_resamples, ci=ci, seed=seed)
     return lower, upper
 
 
@@ -268,14 +266,10 @@ def bootstrap_test(
     h0_data = [x + shift for x in data]
 
     rng = random.Random(seed)
-    boot_stats = [
-        statistic_fn(_bootstrap_sample(h0_data, rng)) for _ in range(n_resamples)
-    ]
+    boot_stats = [statistic_fn(_bootstrap_sample(h0_data, rng)) for _ in range(n_resamples)]
 
     if alternative == "two-sided":
-        p_value = sum(
-            1 for s in boot_stats if abs(s - null_value) >= abs(observed - null_value)
-        )
+        p_value = sum(1 for s in boot_stats if abs(s - null_value) >= abs(observed - null_value))
     elif alternative == "greater":
         p_value = sum(1 for s in boot_stats if s >= observed)
     elif alternative == "less":
@@ -319,12 +313,15 @@ def permutation_test(
     """
     group1 = [float(x) for x in group1]
     group2 = [float(x) for x in group2]
+
+    def _default_stat(a: list, b: list) -> float:
+        return mean(a) - mean(b)
+
     if statistic_fn is None:
-        statistic_fn = lambda a, b: mean(a) - mean(b)
+        statistic_fn = _default_stat
 
     n1 = len(group1)
     combined = group1 + group2
-    n_total = len(combined)
     observed = statistic_fn(group1, group2)
 
     rng = random.Random(seed)

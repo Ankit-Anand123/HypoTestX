@@ -7,7 +7,7 @@ column existence, and numeric/categorical data checks.
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Sequence, Union
+from typing import Any, List, Sequence
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -94,8 +94,7 @@ def validate_columns(df: Any, *columns: str) -> None:
     missing = [c for c in columns if c not in available]
     if missing:
         raise KeyError(
-            f"Column(s) not found in data: {missing}. "
-            f"Available columns: {sorted(available)}"
+            f"Column(s) not found in data: {missing}. " f"Available columns: {sorted(available)}"
         )
 
 
@@ -125,9 +124,7 @@ def validate_categorical_column(df: Any, col: str) -> None:
     validate_columns(df, col)
 
 
-def validate_sample_size(
-    data: Sequence[Any], min_size: int = 2, label: str = "data"
-) -> None:
+def validate_sample_size(data: Sequence[Any], min_size: int = 2, label: str = "data") -> None:
     """
     Assert that *data* has at least *min_size* observations.
 

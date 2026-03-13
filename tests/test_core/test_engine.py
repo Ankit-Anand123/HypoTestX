@@ -27,8 +27,7 @@ GENDER_SALARY = {
     "gender": ["M", "M", "M", "M", "M", "F", "F", "F", "F", "F"] * 6,
     "salary": [70, 75, 80, 72, 78, 60, 65, 70, 63, 68] * 6,
     "age": [30, 35, 40, 32, 37, 28, 32, 38, 29, 34] * 6,
-    "dept": ["Eng", "Sales", "Eng", "Sales", "Eng", "HR", "HR", "Sales", "HR", "Eng"]
-    * 6,
+    "dept": ["Eng", "Sales", "Eng", "Sales", "Eng", "HR", "HR", "Sales", "HR", "Eng"] * 6,
 }
 
 SIMPLE_NUMERIC = {
@@ -123,9 +122,7 @@ class TestBuildContingencyTable:
         }
         table = _build_contingency_table(d, "treatment", "outcome")
         # rows = A, B; cols = N, Y
-        total = sum(
-            table[i][j] for i in range(len(table)) for j in range(len(table[0]))
-        )
+        total = sum(table[i][j] for i in range(len(table)) for j in range(len(table[0])))
         assert total == 6
 
     def test_symmetric_totals(self):
@@ -149,18 +146,13 @@ class TestAnalyzeRouting:
 
     def test_two_sample_ttest(self):
         result = analyze(GENDER_SALARY, "Do males earn more than females?")
-        assert (
-            "t-test" in result.test_name.lower() or "welch" in result.test_name.lower()
-        )
+        assert "t-test" in result.test_name.lower() or "welch" in result.test_name.lower()
         assert 0.0 <= result.p_value <= 1.0
         assert result.is_significant  # the data has a clear difference
 
     def test_pearson_correlation(self):
         result = analyze(SIMPLE_NUMERIC, "Is x correlated with y?")
-        assert (
-            "pearson" in result.test_name.lower()
-            or "correlation" in result.test_name.lower()
-        )
+        assert "pearson" in result.test_name.lower() or "correlation" in result.test_name.lower()
         assert 0.0 <= result.p_value <= 1.0
 
     def test_spearman_correlation(self):
@@ -174,9 +166,7 @@ class TestAnalyzeRouting:
         assert "spearman" in result.test_name.lower()
 
     def test_chi_square(self):
-        result = analyze(
-            GENDER_SALARY, "Is there an association between gender and dept?"
-        )
+        result = analyze(GENDER_SALARY, "Is there an association between gender and dept?")
         assert "chi" in result.test_name.lower()
         assert 0.0 <= result.p_value <= 1.0
 
@@ -220,10 +210,7 @@ class TestAnalyzeRouting:
             )
 
         result = analyze(three_groups, "Compare regions", backend=mock_fn)
-        assert (
-            "anova" in result.test_name.lower()
-            or "analysis" in result.test_name.lower()
-        )
+        assert "anova" in result.test_name.lower() or "analysis" in result.test_name.lower()
 
     def test_mann_whitney(self):
         def mock_fn(msgs):
@@ -234,9 +221,7 @@ class TestAnalyzeRouting:
             )
 
         result = analyze(GENDER_SALARY, "non-parametric comparison", backend=mock_fn)
-        assert (
-            "mann" in result.test_name.lower() or "whitney" in result.test_name.lower()
-        )
+        assert "mann" in result.test_name.lower() or "whitney" in result.test_name.lower()
 
     def test_kruskal_wallis(self):
         three_groups = {
@@ -279,10 +264,7 @@ class TestAnalyzeRouting:
             )
 
         result = analyze(GENDER_SALARY, "point biserial", backend=mock_fn)
-        assert (
-            "biserial" in result.test_name.lower()
-            or "correlation" in result.test_name.lower()
-        )
+        assert "biserial" in result.test_name.lower() or "correlation" in result.test_name.lower()
 
 
 class TestAnalyzeBackends:

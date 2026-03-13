@@ -18,12 +18,11 @@ z_test_one_sample(data, mu0, alpha, alternative)
 
 from __future__ import annotations
 
-import math
-from typing import List, Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple
 
 from ..math.basic import sqrt
 from ..math.distributions import Normal, StudentT
-from ..math.statistics import mean, std, variance
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # CI for a single mean  (t-based)

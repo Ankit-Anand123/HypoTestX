@@ -5,14 +5,10 @@ Tests for hypotestx.reporting.templates — render_apa, render_plain, render_one
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.reporting.templates import (
     APA_TEMPLATES,
-    ONE_LINE_TEMPLATE,
-    PLAIN_TEMPLATE,
     _effect_size_str,
     _significance_word,
     render_apa,

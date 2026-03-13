@@ -73,7 +73,6 @@ def categorical_dataset(n=100):
     gender = (["M", "F"] * (n // 2))[:n]
     dept = (["Eng", "Sales", "HR"] * ((n // 3) + 1))[:n]
     salary = [
-        70.0 + (5 if g == "M" else 0) + (3 if d == "Eng" else 0)
-        for g, d in zip(gender, dept)
+        70.0 + (5 if g == "M" else 0) + (3 if d == "Eng" else 0) for g, d in zip(gender, dept)
     ]
     return {"gender": gender, "dept": dept, "salary": salary}

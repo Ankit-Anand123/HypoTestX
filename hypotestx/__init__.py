@@ -26,12 +26,6 @@ from .core.parser import create_parser, parse_hypothesis
 from .core.result import HypoResult
 
 # ── Visualization (optional — requires matplotlib) ───────────────────────────
-from .explore.visualize import (
-    generate_report,
-    plot_distributions,
-    plot_p_value,
-    plot_result,
-)
 from .math.distributions import ChiSquare, F, Normal, StudentT
 
 # ── Math utilities ────────────────────────────────────────────────────────────
@@ -65,14 +59,7 @@ from .reporting.formatters import (
 )
 
 # ── Reporting ────────────────────────────────────────────────────────────────
-from .reporting.generator import (
-    apa_report,
-    batch_report,
-    export_csv,
-    export_html,
-    export_pdf,
-    text_report,
-)
+from .reporting.generator import apa_report, batch_report, export_csv, text_report
 from .stats.bootstrap import (
     bootstrap_ci,
     bootstrap_mean_ci,
@@ -95,22 +82,13 @@ from .stats.descriptive import (
 from .tests.categorical import chi_square_test, fisher_exact_test
 
 # ── Correlation tests ─────────────────────────────────────────────────────────
-from .tests.correlation import (
-    pearson_correlation,
-    point_biserial_correlation,
-    spearman_correlation,
-)
+from .tests.correlation import pearson_correlation, point_biserial_correlation, spearman_correlation
 
 # ── Non-parametric tests ──────────────────────────────────────────────────────
 from .tests.nonparametric import kruskal_wallis, mann_whitney_u, wilcoxon_signed_rank
 
 # ── Parametric tests ──────────────────────────────────────────────────────────
-from .tests.parametric import (
-    anova_one_way,
-    one_sample_ttest,
-    paired_ttest,
-    two_sample_ttest,
-)
+from .tests.parametric import anova_one_way, one_sample_ttest, paired_ttest, two_sample_ttest
 
 # ── Utils ─────────────────────────────────────────────────────────────────────
 from .utils.data_utils import (
@@ -197,45 +175,29 @@ def test(hypothesis: str, data=None, **kwargs):
     # ── two-sample t-test / Welch's / Mann-Whitney ────────────────
     elif parsed.test_type == "two_sample_ttest":
         if data is None or parsed.group_column is None or parsed.value_column is None:
-            raise ValueError(
-                "Data with group and value columns required for two-sample test"
-            )
+            raise ValueError("Data with group and value columns required for two-sample test")
 
         unique_groups = list(data[parsed.group_column].unique())
         if len(unique_groups) != 2:
             raise ValueError(f"Expected 2 groups, found {len(unique_groups)}")
 
-        g1 = list(
-            data[data[parsed.group_column] == unique_groups[0]][
-                parsed.value_column
-            ].values
-        )
-        g2 = list(
-            data[data[parsed.group_column] == unique_groups[1]][
-                parsed.value_column
-            ].values
-        )
+        g1 = list(data[data[parsed.group_column] == unique_groups[0]][parsed.value_column].values)
+        g2 = list(data[data[parsed.group_column] == unique_groups[1]][parsed.value_column].values)
 
         if method == "non-parametric":
             return mann_whitney_u(g1, g2, alpha=alpha, alternative=alternative)
 
         equal_var = kwargs.get("equal_var", True)
-        return two_sample_ttest(
-            g1, g2, alpha=alpha, alternative=alternative, equal_var=equal_var
-        )
+        return two_sample_ttest(g1, g2, alpha=alpha, alternative=alternative, equal_var=equal_var)
 
     # ── paired t-test ─────────────────────────────────────────────
     elif parsed.test_type == "paired_ttest":
         before = kwargs.get("before")
         after = kwargs.get("after")
         if before is None or after is None:
-            raise ValueError(
-                "Paired t-test requires 'before' and 'after' keyword arguments"
-            )
+            raise ValueError("Paired t-test requires 'before' and 'after' keyword arguments")
         if method == "non-parametric":
-            return wilcoxon_signed_rank(
-                before, after, alpha=alpha, alternative=alternative
-            )
+            return wilcoxon_signed_rank(before, after, alpha=alpha, alternative=alternative)
         return paired_ttest(before, after, alpha=alpha, alternative=alternative)
 
     # ── one-way ANOVA / Kruskal-Wallis ────────────────────────────
@@ -254,19 +216,13 @@ def test(hypothesis: str, data=None, **kwargs):
     # ── chi-square test of independence ──────────────────────────
     elif parsed.test_type == "chi_square":
         if data is None or parsed.group_column is None or parsed.value_column is None:
-            raise ValueError(
-                "Data with two categorical columns required for chi-square test"
-            )
+            raise ValueError("Data with two categorical columns required for chi-square test")
 
         row_vals = list(data[parsed.group_column].unique())
         col_vals = list(data[parsed.value_column].unique())
         table = [
             [
-                int(
-                    (
-                        data[data[parsed.group_column] == r][parsed.value_column] == c
-                    ).sum()
-                )
+                int((data[data[parsed.group_column] == r][parsed.value_column] == c).sum())
                 for c in col_vals
             ]
             for r in row_vals
@@ -288,9 +244,7 @@ def test(hypothesis: str, data=None, **kwargs):
                 if str(data[col].dtype) in ("int64", "float64", "int32", "float32")
             ]
             if len(num_cols) < 2:
-                raise ValueError(
-                    "Need at least two numeric columns for a correlation test"
-                )
+                raise ValueError("Need at least two numeric columns for a correlation test")
             x = list(data[num_cols[0]].values)
             y = list(data[num_cols[1]].values)
 
@@ -412,9 +366,7 @@ def _coerce_to_list(data, name: str = "data"):
     try:
         return list(data)
     except TypeError:
-        raise DataFormatError(
-            f"'{name}' must be a list or iterable, got {type(data).__name__}"
-        )
+        raise DataFormatError(f"'{name}' must be a list or iterable, got {type(data).__name__}")
 
 
 # ── Public API ────────────────────────────────────────────────────────────────

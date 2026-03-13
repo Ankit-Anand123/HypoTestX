@@ -254,9 +254,7 @@ class TestCompareGroups:
         assert isinstance(result, str)
 
     def test_custom_names(self):
-        result = compare_groups(
-            DATA, [1.0, 2.0, 3.0, 4.0, 5.0], names=["Control", "Treatment"]
-        )
+        result = compare_groups(DATA, [1.0, 2.0, 3.0, 4.0, 5.0], names=["Control", "Treatment"])
         assert "Control" in result
         assert "Treatment" in result
 

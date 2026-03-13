@@ -74,7 +74,7 @@ class AdvancedHypothesisParser:
                 self.nlp = _spacy.load(model_name)
             except OSError:
                 print(
-                    f"SpaCy model '{model_name}' not found. Run: python -m spacy download {model_name}"
+                    f"SpaCy model '{model_name}' not found. Run: python -m spacy download {model_name}"  # noqa: E501
                 )
 
         # Initialize NLTK components (optional)
@@ -97,8 +97,8 @@ class AdvancedHypothesisParser:
                     "average",
                 ],
                 "patterns": [
-                    r"(?:compare|difference between)\s+(.+?)\s+(?:and|vs|versus)\s+(.+?)(?:\s+in terms of|\s+for|\s+on)\s+(.+)",
-                    r"(?:do|are)\s+(.+?)\s+(?:different from|higher than|lower than|more than|less than)\s+(.+?)(?:\s+in|\s+for|\s+on)\s+(.+)",
+                    r"(?:compare|difference between)\s+(.+?)\s+(?:and|vs|versus)\s+(.+?)(?:\s+in terms of|\s+for|\s+on)\s+(.+)",  # noqa: E501
+                    r"(?:do|are)\s+(.+?)\s+(?:different from|higher than|lower than|more than|less than)\s+(.+?)(?:\s+in|\s+for|\s+on)\s+(.+)",  # noqa: E501
                     r"(?:is there a difference in)\s+(.+?)\s+(?:between)\s+(.+?)\s+(?:and)\s+(.+)",
                 ],
                 "confidence": 0.8,
@@ -106,7 +106,7 @@ class AdvancedHypothesisParser:
             "one_sample_ttest": {
                 "keywords": ["test", "against", "equals", "different from", "value"],
                 "patterns": [
-                    r"(?:is|are)\s+(.+?)\s+(?:equal to|different from|greater than|less than)\s+(\d+\.?\d*)",
+                    r"(?:is|are)\s+(.+?)\s+(?:equal to|different from|greater than|less than)\s+(\d+\.?\d*)",  # noqa: E501
                     r"(?:test|check)\s+(?:if|whether)\s+(.+?)\s+(?:equals?|=)\s+(\d+\.?\d*)",
                 ],
                 "confidence": 0.7,
@@ -129,8 +129,8 @@ class AdvancedHypothesisParser:
             "anova": {
                 "keywords": ["multiple", "groups", "more than", "several", "across"],
                 "patterns": [
-                    r"(?:compare|difference)\s+(.+?)\s+(?:across|among|between)\s+(?:multiple|several|three or more|more than two)\s+(.+)",
-                    r"(?:is there a difference in)\s+(.+?)\s+(?:across|among)\s+(.+?)\s+(?:groups|categories)",
+                    r"(?:compare|difference)\s+(.+?)\s+(?:across|among|between)\s+(?:multiple|several|three or more|more than two)\s+(.+)",  # noqa: E501
+                    r"(?:is there a difference in)\s+(.+?)\s+(?:across|among)\s+(.+?)\s+(?:groups|categories)",  # noqa: E501
                 ],
                 "confidence": 0.8,
             },
@@ -156,7 +156,7 @@ class AdvancedHypothesisParser:
             "greater": {
                 "keywords": ["more", "higher", "greater", "larger", "above", "exceed"],
                 "patterns": [
-                    r"(.+?)\s+(?:spend|earn|score|have|get|are)\s+(?:more|higher|greater)\s+than\s+(.+)",
+                    r"(.+?)\s+(?:spend|earn|score|have|get|are)\s+(?:more|higher|greater)\s+than\s+(.+)",  # noqa: E501
                     r"(?:do|are)\s+(.+?)\s+(?:spend|earn|score)\s+more\s+than\s+(.+)",
                     r"(.+?)\s+(?:>|greater than|higher than)\s+(.+)",
                 ],
@@ -165,7 +165,7 @@ class AdvancedHypothesisParser:
             "less": {
                 "keywords": ["less", "lower", "smaller", "below", "under"],
                 "patterns": [
-                    r"(.+?)\s+(?:spend|earn|score|have|get|are)\s+(?:less|lower|smaller)\s+than\s+(.+)",
+                    r"(.+?)\s+(?:spend|earn|score|have|get|are)\s+(?:less|lower|smaller)\s+than\s+(.+)",  # noqa: E501
                     r"(?:do|are)\s+(.+?)\s+(?:spend|earn|score)\s+less\s+than\s+(.+)",
                     r"(.+?)\s+(?:<|less than|lower than)\s+(.+)",
                 ],
@@ -243,9 +243,7 @@ class AdvancedHypothesisParser:
         intent, test_type, confidence = self._classify_intent(cleaned_text, entities)
 
         # Extract comparison information
-        comparison_type, group_values = self._extract_comparison_advanced(
-            cleaned_text, entities
-        )
+        comparison_type, group_values = self._extract_comparison_advanced(cleaned_text, entities)
 
         # Extract confidence level
         confidence_level = self._extract_confidence_level(cleaned_text)
@@ -260,9 +258,7 @@ class AdvancedHypothesisParser:
 
         # Refine test type based on data analysis
         if data is not None:
-            test_type = self._refine_test_type(
-                test_type, group_column, value_column, data
-            )
+            test_type = self._refine_test_type(test_type, group_column, value_column, data)
 
         # Determine tail
         tail = self._determine_tail(comparison_type)
@@ -358,7 +354,6 @@ class AdvancedHypothesisParser:
 
     def _classify_intent(self, text: str, entities: Dict) -> Tuple[str, str, float]:
         """Classify the intent and determine test type"""
-        best_match = None
         best_score = 0
         best_test = "unknown"
 
@@ -366,9 +361,7 @@ class AdvancedHypothesisParser:
             score = 0
 
             # Check keyword matches
-            keyword_matches = sum(
-                1 for keyword in config["keywords"] if keyword in text
-            )
+            keyword_matches = sum(1 for keyword in config["keywords"] if keyword in text)
             score += (keyword_matches / len(config["keywords"])) * 0.5
 
             # Check pattern matches
@@ -382,9 +375,7 @@ class AdvancedHypothesisParser:
                 score += 0.4
 
             # Check statistical terms
-            stats_terms = [
-                term["term"] for term in entities.get("statistical_terms", [])
-            ]
+            stats_terms = [term["term"] for term in entities.get("statistical_terms", [])]
             relevant_terms = set(config["keywords"]) & set(stats_terms)
             if relevant_terms:
                 score += 0.1
@@ -395,7 +386,6 @@ class AdvancedHypothesisParser:
             if score > best_score:
                 best_score = score
                 best_test = test_type
-                best_match = config
 
         intent = f"hypothesis_testing_{best_test}"
         return intent, best_test, best_score
@@ -410,9 +400,7 @@ class AdvancedHypothesisParser:
             score = 0
 
             # Check keywords
-            keyword_matches = sum(
-                1 for keyword in config["keywords"] if keyword in text
-            )
+            keyword_matches = sum(1 for keyword in config["keywords"] if keyword in text)
             score += keyword_matches
 
             # Check patterns
@@ -434,9 +422,7 @@ class AdvancedHypothesisParser:
 
         # Find best match
         if comparison_scores:
-            best_comp = max(
-                comparison_scores.keys(), key=lambda x: comparison_scores[x][0]
-            )
+            best_comp = max(comparison_scores.keys(), key=lambda x: comparison_scores[x][0])
             if comparison_scores[best_comp][0] > 0:
                 return best_comp, comparison_scores[best_comp][1]
 
@@ -496,8 +482,7 @@ class AdvancedHypothesisParser:
 
                 for col in column_names:
                     col_tokens = set(
-                        self.lemmatizer.lemmatize(word.lower())
-                        for word in _word_tokenize(col)
+                        self.lemmatizer.lemmatize(word.lower()) for word in _word_tokenize(col)
                     )
 
                 if col_tokens & text_tokens:  # If there's any overlap
@@ -744,15 +729,11 @@ class SimpleHypothesisParser:
         # Determine test type based on keyword heuristics
         test_type = "two_sample_ttest"  # sensible default
 
-        if re.search(
-            r"\b(?:equal to|different from|greater than|less than)\b.*\d", text
-        ):
+        if re.search(r"\b(?:equal to|different from|greater than|less than)\b.*\d", text):
             test_type = "one_sample_ttest"
         elif re.search(r"\b(?:before|after|pre|post|paired|repeated)\b", text):
             test_type = "paired_ttest"
-        elif re.search(
-            r"\b(?:association|independent|categorical|frequency|contingency)\b", text
-        ):
+        elif re.search(r"\b(?:association|independent|categorical|frequency|contingency)\b", text):
             test_type = "chi_square"
         elif re.search(r"\b(?:correlat|related|relationship|linear)\b", text):
             test_type = "correlation"
@@ -778,10 +759,7 @@ class SimpleHypothesisParser:
                 dtype = str(data[col].dtype)
                 if dtype in ("object", "category", "bool") and group_column is None:
                     group_column = col
-                elif (
-                    dtype in ("int64", "float64", "int32", "float32")
-                    and value_column is None
-                ):
+                elif dtype in ("int64", "float64", "int32", "float32") and value_column is None:
                     value_column = col
 
         return ParsedHypothesis(

@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import List
 
 from ..core.result import HypoResult
 from ..core.validators import (
@@ -9,7 +9,7 @@ from ..core.validators import (
     validate_two_groups,
 )
 from ..math.basic import abs_value, sqrt
-from ..math.distributions import Normal, StudentT
+from ..math.distributions import StudentT
 from ..math.statistics import mean, std, variance
 
 
@@ -66,11 +66,7 @@ def one_sample_ttest(
     cohens_d = (sample_mean - mu) / sample_std
 
     # Calculate confidence interval
-    t_critical = (
-        t_dist.ppf(1 - alpha / 2)
-        if alternative == "two-sided"
-        else t_dist.ppf(1 - alpha)
-    )
+    t_critical = t_dist.ppf(1 - alpha / 2) if alternative == "two-sided" else t_dist.ppf(1 - alpha)
     margin_of_error = t_critical * standard_error
 
     if alternative == "two-sided":
@@ -93,21 +89,17 @@ def one_sample_ttest(
     significance = "significant" if p_value < alpha else "not significant"
     direction = ""
     if alternative == "greater" and p_value < alpha:
-        direction = (
-            f"Sample mean ({sample_mean:.3f}) is significantly greater than {mu}"
-        )
+        direction = f"Sample mean ({sample_mean:.3f}) is significantly greater than {mu}"
     elif alternative == "less" and p_value < alpha:
         direction = f"Sample mean ({sample_mean:.3f}) is significantly less than {mu}"
     elif alternative == "two-sided" and p_value < alpha:
-        direction = (
-            f"Sample mean ({sample_mean:.3f}) is significantly different from {mu}"
-        )
+        direction = f"Sample mean ({sample_mean:.3f}) is significantly different from {mu}"
     else:
-        direction = f"No significant difference found between sample mean ({sample_mean:.3f}) and {mu}"
+        direction = (
+            f"No significant difference found between sample mean ({sample_mean:.3f}) and {mu}"
+        )
 
-    interpretation = (
-        f"The one-sample t-test is {significance} (p = {p_value:.4f}). {direction}"
-    )
+    interpretation = f"The one-sample t-test is {significance} (p = {p_value:.4f}). {direction}"
 
     return HypoResult(
         test_name="One-Sample t-test",
@@ -214,11 +206,7 @@ def two_sample_ttest(
         raise ValueError("Alternative must be 'two-sided', 'greater', or 'less'")
 
     # Calculate confidence interval for difference in means
-    t_critical = (
-        t_dist.ppf(1 - alpha / 2)
-        if alternative == "two-sided"
-        else t_dist.ppf(1 - alpha)
-    )
+    t_critical = t_dist.ppf(1 - alpha / 2) if alternative == "two-sided" else t_dist.ppf(1 - alpha)
     margin_of_error = t_critical * standard_error
     mean_diff = mean1 - mean2
 
@@ -246,17 +234,19 @@ def two_sample_ttest(
     significance = "significant" if p_value < alpha else "not significant"
     direction = ""
     if alternative == "greater" and p_value < alpha:
-        direction = f"Group 1 mean ({mean1:.3f}) is significantly greater than Group 2 mean ({mean2:.3f})"
+        direction = (
+            f"Group 1 mean ({mean1:.3f}) is significantly greater than Group 2 mean ({mean2:.3f})"
+        )
     elif alternative == "less" and p_value < alpha:
-        direction = f"Group 1 mean ({mean1:.3f}) is significantly less than Group 2 mean ({mean2:.3f})"
+        direction = (
+            f"Group 1 mean ({mean1:.3f}) is significantly less than Group 2 mean ({mean2:.3f})"
+        )
     elif alternative == "two-sided" and p_value < alpha:
-        direction = f"Significant difference between Group 1 mean ({mean1:.3f}) and Group 2 mean ({mean2:.3f})"
+        direction = f"Significant difference between Group 1 mean ({mean1:.3f}) and Group 2 mean ({mean2:.3f})"  # noqa: E501
     else:
-        direction = f"No significant difference between Group 1 mean ({mean1:.3f}) and Group 2 mean ({mean2:.3f})"
+        direction = f"No significant difference between Group 1 mean ({mean1:.3f}) and Group 2 mean ({mean2:.3f})"  # noqa: E501
 
-    interpretation = (
-        f"The {test_name.lower()} is {significance} (p = {p_value:.4f}). {direction}"
-    )
+    interpretation = f"The {test_name.lower()} is {significance} (p = {p_value:.4f}). {direction}"
 
     return HypoResult(
         test_name=test_name,
@@ -331,13 +321,13 @@ def paired_ttest(
     # Update interpretation
     significance = "significant" if result.p_value < alpha else "not significant"
     if alternative == "greater" and result.p_value < alpha:
-        direction = f"After values are significantly greater than before values (mean difference = {mean_diff:.3f})"
+        direction = f"After values are significantly greater than before values (mean difference = {mean_diff:.3f})"  # noqa: E501
     elif alternative == "less" and result.p_value < alpha:
-        direction = f"After values are significantly less than before values (mean difference = {mean_diff:.3f})"
+        direction = f"After values are significantly less than before values (mean difference = {mean_diff:.3f})"  # noqa: E501
     elif alternative == "two-sided" and result.p_value < alpha:
-        direction = f"Significant difference between before and after values (mean difference = {mean_diff:.3f})"
+        direction = f"Significant difference between before and after values (mean difference = {mean_diff:.3f})"  # noqa: E501
     else:
-        direction = f"No significant difference between before and after values (mean difference = {mean_diff:.3f})"
+        direction = f"No significant difference between before and after values (mean difference = {mean_diff:.3f})"  # noqa: E501
 
     result.interpretation = (
         f"The paired t-test is {significance} (p = {result.p_value:.4f}). {direction}"
@@ -384,9 +374,7 @@ def anova_one_way(
     grand_mean = sum(v for g in groups for v in g) / N
 
     # Between-group SS
-    SS_between = sum(
-        group_sizes[i] * (group_means[i] - grand_mean) ** 2 for i in range(k)
-    )
+    SS_between = sum(group_sizes[i] * (group_means[i] - grand_mean) ** 2 for i in range(k))
     df_between = k - 1
 
     # Within-group SS
@@ -394,9 +382,7 @@ def anova_one_way(
     df_within = N - k
 
     if df_within <= 0:
-        raise ValueError(
-            "Insufficient degrees of freedom within groups; add more observations"
-        )
+        raise ValueError("Insufficient degrees of freedom within groups; add more observations")
 
     MS_between = SS_between / df_between
     MS_within = SS_within / df_within

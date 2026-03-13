@@ -6,8 +6,6 @@ Custom exceptions for HypoTestX
 class HypoTestXError(Exception):
     """Base exception for all HypoTestX errors"""
 
-    pass
-
 
 class InsufficientDataError(HypoTestXError):
     """Raised when the data is too small for a valid test"""

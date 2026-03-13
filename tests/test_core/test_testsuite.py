@@ -5,8 +5,6 @@ Tests for hypotestx.core.testsuite — TestSuite class.
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.core.testsuite import TestSuite

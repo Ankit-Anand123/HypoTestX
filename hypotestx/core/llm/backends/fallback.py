@@ -21,8 +21,7 @@ _TESTS_BY_KEYWORD = [
     # (regex, test_key, default_alternative)   — searched in order
     # Correlations
     (
-        "correlat|related to|linear relationship|predict.*from|association.*numeric"
-        "|scatter",
+        "correlat|related to|linear relationship|predict.*from|association.*numeric" "|scatter",
         "pearson",
         "two-sided",
     ),

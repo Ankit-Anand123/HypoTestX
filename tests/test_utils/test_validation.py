@@ -108,7 +108,6 @@ class TestValidateNumericColumn:
             validate_numeric_column(GOOD_DICT, "nope")
 
     def test_empty_column_raises(self):
-        d = {"x": []}
         with pytest.raises((ValueError, KeyError)):
             # dict has a column but validate_dataframe already blocks empty,
             # here the column itself is empty after passing in directly

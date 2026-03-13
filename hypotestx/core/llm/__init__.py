@@ -107,11 +107,7 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     # Duck-type: accept any object that exposes a .route() method even if it
     # doesn't formally inherit from LLMBackend (useful for testing stubs and
     # third-party wrappers).
-    if (
-        hasattr(spec, "route")
-        and callable(getattr(spec, "route"))
-        and not isinstance(spec, type)
-    ):
+    if hasattr(spec, "route") and callable(getattr(spec, "route")) and not isinstance(spec, type):
         return spec  # type: ignore[return-value]
 
     if callable(spec) and not isinstance(spec, type):
@@ -120,9 +116,7 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     if isinstance(spec, str):
         key = spec.strip().lower()
         if key not in _STRING_MAP:
-            raise ValueError(
-                f"Unknown backend '{spec}'. " f"Choose from: {', '.join(_STRING_MAP)}"
-            )
+            raise ValueError(f"Unknown backend '{spec}'. " f"Choose from: {', '.join(_STRING_MAP)}")
         cls_or_fn = _STRING_MAP[key]
         return cls_or_fn(**kwargs)
 

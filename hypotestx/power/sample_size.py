@@ -15,9 +15,6 @@ n_correlation(r, alpha, power, alternative)
 sample_size_summary(...)
 """
 
-from typing import Optional
-
-from ..math.basic import sqrt
 from .analysis import (
     power_anova,
     power_chi_square,
@@ -87,10 +84,11 @@ def n_ttest_one_sample(
     -------
     int : minimum sample size per test
     """
-    fn = lambda n: power_ttest_one_sample(
-        effect_size, n, alpha=alpha, alternative=alternative
-    )
-    return _solve_n(fn, power)
+
+    def _fn(n: int) -> float:
+        return power_ttest_one_sample(effect_size, n, alpha=alpha, alternative=alternative)
+
+    return _solve_n(_fn, power)
 
 
 # ---------------------------------------------------------------------------
@@ -118,10 +116,11 @@ def n_ttest_two_sample(
     -------
     int : minimum n per group; total N = 2 * returned value
     """
-    fn = lambda n: power_ttest_two_sample(
-        effect_size, n, n, alpha=alpha, alternative=alternative
-    )
-    return _solve_n(fn, power)
+
+    def _fn(n: int) -> float:
+        return power_ttest_two_sample(effect_size, n, n, alpha=alpha, alternative=alternative)
+
+    return _solve_n(_fn, power)
 
 
 # ---------------------------------------------------------------------------
@@ -149,10 +148,11 @@ def n_ttest_paired(
     -------
     int : minimum number of pairs
     """
-    fn = lambda n: power_ttest_paired(
-        effect_size, n, alpha=alpha, alternative=alternative
-    )
-    return _solve_n(fn, power)
+
+    def _fn(n: int) -> float:
+        return power_ttest_paired(effect_size, n, alpha=alpha, alternative=alternative)
+
+    return _solve_n(_fn, power)
 
 
 # ---------------------------------------------------------------------------
@@ -183,8 +183,11 @@ def n_anova(
     """
     if k < 2:
         raise ValueError("ANOVA requires at least 2 groups")
-    fn = lambda n: power_anova(effect_size, n, k, alpha=alpha)
-    return _solve_n(fn, power)
+
+    def _fn(n: int) -> float:
+        return power_anova(effect_size, n, k, alpha=alpha)
+
+    return _solve_n(_fn, power)
 
 
 # ---------------------------------------------------------------------------
@@ -213,8 +216,11 @@ def n_chi_square(
     -------
     int : minimum total sample size
     """
-    fn = lambda n: power_chi_square(effect_size, n, df, alpha=alpha)
-    return _solve_n(fn, power)
+
+    def _fn(n: int) -> float:
+        return power_chi_square(effect_size, n, df, alpha=alpha)
+
+    return _solve_n(_fn, power)
 
 
 # ---------------------------------------------------------------------------
@@ -242,8 +248,11 @@ def n_correlation(
     -------
     int : minimum sample size
     """
-    fn = lambda n: power_correlation(r, n, alpha=alpha, alternative=alternative)
-    return _solve_n(fn, power, n_low=4)
+
+    def _fn(n: int) -> float:
+        return power_correlation(r, n, alpha=alpha, alternative=alternative)
+
+    return _solve_n(_fn, power, n_low=4)
 
 
 # ---------------------------------------------------------------------------
@@ -285,9 +294,7 @@ def sample_size_summary(
             effect_size, alpha, power, kwargs.get("alternative", "two-sided")
         ),
         "anova": lambda: n_anova(effect_size, kwargs.get("k", 3), alpha, power),
-        "chi_square": lambda: n_chi_square(
-            effect_size, kwargs.get("df", 1), alpha, power
-        ),
+        "chi_square": lambda: n_chi_square(effect_size, kwargs.get("df", 1), alpha, power),
         "correlation": lambda: n_correlation(
             effect_size, alpha, power, kwargs.get("alternative", "two-sided")
         ),

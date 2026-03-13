@@ -33,9 +33,7 @@ def validate_data(data: Any, min_size: int = 2, name: str = "data") -> List[floa
         try:
             data_list = list(data)
         except TypeError:
-            raise DataFormatError(
-                f"'{name}' must be a list or iterable, got {type(data).__name__}"
-            )
+            raise DataFormatError(f"'{name}' must be a list or iterable, got {type(data).__name__}")
 
     if len(data_list) < min_size:
         raise InsufficientDataError(
@@ -178,15 +176,11 @@ def validate_contingency_table(table: Any) -> List[List[float]]:
 
     nrows = len(table)
     if nrows < 2:
-        raise DataFormatError(
-            f"Contingency table must have at least 2 rows, got {nrows}"
-        )
+        raise DataFormatError(f"Contingency table must have at least 2 rows, got {nrows}")
 
     ncols = len(table[0]) if table else 0
     if ncols < 2:
-        raise DataFormatError(
-            f"Contingency table must have at least 2 columns, got {ncols}"
-        )
+        raise DataFormatError(f"Contingency table must have at least 2 columns, got {ncols}")
 
     validated = []
     for r, row in enumerate(table):
@@ -207,9 +201,7 @@ def validate_contingency_table(table: Any) -> List[List[float]]:
     return validated
 
 
-def validate_groups(
-    *groups: Any, min_size: int = 2, min_groups: int = 2
-) -> List[List[float]]:
+def validate_groups(*groups: Any, min_size: int = 2, min_groups: int = 2) -> List[List[float]]:
     """
     Validate three or more independent group samples (e.g., for ANOVA, Kruskal-Wallis).
 
@@ -225,7 +217,5 @@ def validate_groups(
         InsufficientDataError: If fewer than min_groups groups are provided
     """
     if len(groups) < min_groups:
-        raise InsufficientDataError(
-            f"At least {min_groups} groups are required, got {len(groups)}"
-        )
+        raise InsufficientDataError(f"At least {min_groups} groups are required, got {len(groups)}")
     return [validate_data(g, min_size, f"group{i + 1}") for i, g in enumerate(groups)]

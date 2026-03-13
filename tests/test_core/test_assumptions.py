@@ -157,15 +157,11 @@ class TestBartlettTest(unittest.TestCase):
 
     def test_equal_variances_not_rejected(self):
         r = bartlett_test(*self.equal_var)
-        self.assertFalse(
-            r.is_significant, f"Bartlett flagged equal vars: p={r.p_value:.4f}"
-        )
+        self.assertFalse(r.is_significant, f"Bartlett flagged equal vars: p={r.p_value:.4f}")
 
     def test_unequal_variances_detected(self):
         r = bartlett_test(*self.unequal_var)
-        self.assertTrue(
-            r.is_significant, f"Bartlett missed unequal vars: p={r.p_value:.4f}"
-        )
+        self.assertTrue(r.is_significant, f"Bartlett missed unequal vars: p={r.p_value:.4f}")
 
     def test_chi2_statistic_positive(self):
         r = bartlett_test(*self.equal_var)

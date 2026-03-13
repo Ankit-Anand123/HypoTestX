@@ -34,7 +34,6 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from .exceptions import HypoTestXError
 from .result import HypoResult
 
 _log = logging.getLogger("hypotestx")
@@ -53,8 +52,7 @@ def _col_to_list(df: Any, col: str) -> List:
     """
     if col not in _column_names(df):
         raise KeyError(
-            f"Column '{col}' not found in DataFrame. "
-            f"Available columns: {_column_names(df)}"
+            f"Column '{col}' not found in DataFrame. " f"Available columns: {_column_names(df)}"
         )
     # pandas
     if hasattr(df, "iloc"):
@@ -249,9 +247,7 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_TWO_COLS:
-        has_xy = getattr(routing, "x_column", None) and getattr(
-            routing, "y_column", None
-        )
+        has_xy = getattr(routing, "x_column", None) and getattr(routing, "y_column", None)
         has_group = getattr(routing, "group_column", None) and getattr(
             routing, "value_column", None
         )
@@ -267,9 +263,7 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_GROUP_COL:
-        if not getattr(routing, "group_column", None) or not getattr(
-            routing, "value_column", None
-        ):
+        if not getattr(routing, "group_column", None) or not getattr(routing, "value_column", None):
             raise ValueError(
                 f"'{test}' requires group_column and value_column in the routing "
                 f"result.  "
@@ -280,9 +274,7 @@ def _validate_routing_columns(routing, df: Any, test: str) -> None:
             )
 
     if test in _TESTS_NEEDING_ONE_COL:
-        col = getattr(routing, "value_column", None) or getattr(
-            routing, "x_column", None
-        )
+        col = getattr(routing, "value_column", None) or getattr(routing, "x_column", None)
         if not col:
             raise ValueError(
                 f"'{test}' requires value_column (or x_column) in the routing "
@@ -312,17 +304,8 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
         point_biserial_correlation,
         spearman_correlation,
     )
-    from ..tests.nonparametric import (
-        kruskal_wallis,
-        mann_whitney_u,
-        wilcoxon_signed_rank,
-    )
-    from ..tests.parametric import (
-        anova_one_way,
-        one_sample_ttest,
-        paired_ttest,
-        two_sample_ttest,
-    )
+    from ..tests.nonparametric import kruskal_wallis, mann_whitney_u, wilcoxon_signed_rank
+    from ..tests.parametric import anova_one_way, one_sample_ttest, paired_ttest, two_sample_ttest
 
     test = routing.test or "two_sample_ttest"
     alt = routing.alternative or "two-sided"
@@ -342,7 +325,7 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
 
     if verbose:
         print(
-            f"[HypoTestX] Routing -> test={test!r}, confidence={getattr(routing, 'confidence', 'n/a')}"
+            f"[HypoTestX] Routing -> test={test!r}, confidence={getattr(routing, 'confidence', 'n/a')}"  # noqa: E501
         )
         if getattr(routing, "reasoning", None):
             print(f"[HypoTestX] Reasoning: {routing.reasoning}")
@@ -408,9 +391,7 @@ def _dispatch(routing, df: Any, alpha: float, verbose: bool) -> HypoResult:
             return wilcoxon_signed_rank(x, y=y, mu=mu, alpha=eff_alpha, alternative=alt)
         col = routing.value_column or routing.x_column
         if not col:
-            raise ValueError(
-                "wilcoxon_signed_rank requires value_column or x_column/y_column"
-            )
+            raise ValueError("wilcoxon_signed_rank requires value_column or x_column/y_column")
         data = [float(v) for v in _col_to_list(df, col)]
         return wilcoxon_signed_rank(data, mu=mu, alpha=eff_alpha, alternative=alt)
 
@@ -508,9 +489,7 @@ def _resolve_two_groups(routing, df: Any, test_name: str) -> List[List[float]]:
     """
     if routing.group_column and routing.value_column:
         gv = list(routing.group_values or [])
-        groups_dict = _extract_groups(
-            df, routing.group_column, routing.value_column, gv or None
-        )
+        groups_dict = _extract_groups(df, routing.group_column, routing.value_column, gv or None)
         vals = list(groups_dict.values())
         if len(vals) < 2:
             raise ValueError(
@@ -537,9 +516,7 @@ def _resolve_all_groups(routing, df: Any, test_name: str) -> List[List[float]]:
     """
     if routing.group_column and routing.value_column:
         gv = list(routing.group_values or [])
-        groups_dict = _extract_groups(
-            df, routing.group_column, routing.value_column, gv or None
-        )
+        groups_dict = _extract_groups(df, routing.group_column, routing.value_column, gv or None)
         return list(groups_dict.values())
 
     raise ValueError(
@@ -556,8 +533,7 @@ def _resolve_paired_columns(routing, df: Any, test_name: str):
         # Some LLMs emit group/value instead of x/y for paired tests
         return routing.group_column, routing.value_column
     raise ValueError(
-        f"{test_name}: routing result must include x_column + y_column. "
-        f"Got: {routing!r}"
+        f"{test_name}: routing result must include x_column + y_column. " f"Got: {routing!r}"
     )
 
 
@@ -568,8 +544,7 @@ def _resolve_xy_columns(routing, df: Any, test_name: str):
     if routing.value_column and routing.group_column:
         return routing.value_column, routing.group_column
     raise ValueError(
-        f"{test_name}: routing result must include x_column + y_column. "
-        f"Got: {routing!r}"
+        f"{test_name}: routing result must include x_column + y_column. " f"Got: {routing!r}"
     )
 
 
@@ -794,9 +769,7 @@ def analyze(
     _log.debug("Schema columns: %s", schema.columns)
 
     if verbose:
-        print(
-            f"[HypoTestX] Schema: {schema.n_rows} rows, " f"columns: {schema.columns}"
-        )
+        print(f"[HypoTestX] Schema: {schema.n_rows} rows, " f"columns: {schema.columns}")
         print(f"[HypoTestX] Backend: {type(backend_instance).__name__}")
         print(f"[HypoTestX] Question: {question!r}")
 

@@ -132,7 +132,6 @@ class TestAzureUrlAndHeaders(unittest.TestCase):
         def fake_urlopen(req, timeout=None):
             captured["headers"] = dict(req.headers)
             # Return a minimal valid response
-            import io
 
             mock_resp = MagicMock()
             mock_resp.__enter__ = lambda s: s
@@ -150,9 +149,7 @@ class TestAzureUrlAndHeaders(unittest.TestCase):
 
         # Azure uses 'api-key', not 'authorization'
         header_keys = {k.lower() for k in captured.get("headers", {})}
-        self.assertIn(
-            "api-key", header_keys, "Azure backend must send 'api-key' header"
-        )
+        self.assertIn("api-key", header_keys, "Azure backend must send 'api-key' header")
         self.assertNotIn(
             "authorization",
             header_keys,

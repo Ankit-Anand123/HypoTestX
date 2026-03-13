@@ -50,9 +50,7 @@ class TestOneSampleTTest(unittest.TestCase):
 
     def test_not_significant_for_matching_mu(self):
         r = one_sample_ttest(self.data, mu=12.0, alpha=0.05)
-        self.assertFalse(
-            r.is_significant, f"Expected not significant, p={r.p_value:.4f}"
-        )
+        self.assertFalse(r.is_significant, f"Expected not significant, p={r.p_value:.4f}")
 
     def test_effect_size_cohens_d(self):
         r = one_sample_ttest(self.data, mu=10)
@@ -214,9 +212,7 @@ class TestWelchDivisionByZero(unittest.TestCase):
         try:
             r = two_sample_ttest(g1, g2, equal_var=False)
             # If it runs, p_value must be a valid float
-            self.assertFalse(
-                r.p_value != r.p_value, "p_value should not be NaN"  # nan check
-            )
+            self.assertFalse(r.p_value != r.p_value, "p_value should not be NaN")  # nan check
         except ValueError as exc:
             # Also acceptable: raise with a descriptive message
             self.assertTrue(len(str(exc)) > 0)

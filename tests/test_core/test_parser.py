@@ -5,8 +5,6 @@ Tests for hypotestx.core.parser -- hypothesis text parsing.
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from hypotestx.core.parser import (
@@ -75,9 +73,7 @@ class TestParseHypothesisTestTypes:
         assert isinstance(r.test_type, str)
 
     def test_before_after_question(self):
-        r = parse_hypothesis(
-            "Is there a significant difference before and after treatment?"
-        )
+        r = parse_hypothesis("Is there a significant difference before and after treatment?")
         assert isinstance(r.test_type, str)
 
 
@@ -126,9 +122,7 @@ class TestSimpleHypothesisParser:
         assert r.test_type in ("correlation", "two_sample_ttest", "unknown")
 
     def test_paired_keyword(self):
-        r = self.parser.parse(
-            "Is there a difference before and after the intervention?"
-        )
+        r = self.parser.parse("Is there a difference before and after the intervention?")
         assert r.test_type in ("paired_ttest", "two_sample_ttest", "unknown")
 
     def test_one_sample_pattern(self):

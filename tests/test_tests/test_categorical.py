@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.core.exceptions import DataFormatError, InsufficientDataError
+from hypotestx.core.exceptions import DataFormatError
 from hypotestx.core.result import HypoResult
 from hypotestx.tests.categorical import chi_square_test, fisher_exact_test
 

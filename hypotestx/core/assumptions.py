@@ -11,12 +11,12 @@ check_normality(data, alpha)       : -> (is_normal: bool, HypoResult)
 check_equal_variances(*groups)     : -> (are_equal: bool, HypoResult)
 """
 
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 from ..core.result import HypoResult
 from ..math.basic import abs_value, exp, ln, sqrt
 from ..math.distributions import ChiSquare, Normal
-from ..math.statistics import kurtosis, mean, median, skewness, std, variance
+from ..math.statistics import kurtosis, mean, median, skewness, variance
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -109,10 +109,8 @@ def shapiro_wilk(data: List[float], alpha: float = 0.05) -> HypoResult:
         a = [mi / ms for mi in m]  # a_i = normalized expected order statistics
 
         k = n // 2
-        # Pairs sum: a[n-1-i] * (x_(n-i) - x_(i+1))  [1-based: a_n*(x_n-x_1) + a_{n-1}*(x_{n-1}-x_2) + ...]
-        numerator = sum(
-            a[n - 1 - i] * (data_sorted[n - 1 - i] - data_sorted[i]) for i in range(k)
-        )
+        # Pairs sum: a[n-1-i] * (x_(n-i) - x_(i+1))  [1-based: a_n*(x_n-x_1) + a_{n-1}*(x_{n-1}-x_2) + ...]  # noqa: E501
+        numerator = sum(a[n - 1 - i] * (data_sorted[n - 1 - i] - data_sorted[i]) for i in range(k))
         W = min(max((numerator**2) / S2, 0.0), 1.0)
         p_value = _sw_pvalue(W, n)
 
@@ -192,9 +190,7 @@ def levene_test(*groups: List[float], alpha: float = 0.05) -> HypoResult:
 
     equal_var = p_value >= alpha
     if equal_var:
-        interp = (
-            f"Equal variances assumed (F = {F_stat:.4f}, p = {p_value:.4f} >= {alpha})."
-        )
+        interp = f"Equal variances assumed (F = {F_stat:.4f}, p = {p_value:.4f} >= {alpha})."
     else:
         interp = f"Unequal variances detected (F = {F_stat:.4f}, p = {p_value:.4f} < {alpha})."
 
@@ -258,9 +254,7 @@ def bartlett_test(*groups: List[float], alpha: float = 0.05) -> HypoResult:
     if equal_var:
         interp = f"Equal variances assumed (B = {B:.4f}, p = {p_value:.4f} >= {alpha})."
     else:
-        interp = (
-            f"Unequal variances detected (B = {B:.4f}, p = {p_value:.4f} < {alpha})."
-        )
+        interp = f"Unequal variances detected (B = {B:.4f}, p = {p_value:.4f} < {alpha})."
 
     return HypoResult(
         test_name="Bartlett Test for Equal Variances",

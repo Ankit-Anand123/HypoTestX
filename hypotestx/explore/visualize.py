@@ -20,7 +20,7 @@ generate_report(result, path, fmt)    -> saves HTML / PNG report
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, List, Optional, Sequence
 
 __all__ = [
     "plot_result",
@@ -54,9 +54,7 @@ def _stderr_bar_chart(ax, group_labels, means, stds, title=""):
     """Draw a simple bar chart with ±1 SD error bars."""
     x = list(range(len(group_labels)))
     ax.bar(x, means, width=0.5, color="#4C72B0", edgecolor="white", alpha=0.85)
-    ax.errorbar(
-        x, means, yerr=stds, fmt="none", color="black", capsize=5, linewidth=1.5
-    )
+    ax.errorbar(x, means, yerr=stds, fmt="none", color="black", capsize=5, linewidth=1.5)
     ax.set_xticks(x)
     ax.set_xticklabels(group_labels)
     ax.set_ylabel("Mean ± SD")
@@ -71,8 +69,7 @@ def _normal_pdf(x_vals, mu, sigma):
     if sigma == 0:
         return [0.0] * len(x_vals)
     return [
-        (1 / (sigma * math.sqrt(2 * math.pi)))
-        * math.exp(-0.5 * ((x - mu) / sigma) ** 2)
+        (1 / (sigma * math.sqrt(2 * math.pi))) * math.exp(-0.5 * ((x - mu) / sigma) ** 2)
         for x in x_vals
     ]
 
@@ -143,9 +140,7 @@ def plot_p_value(
         crit = _normal_ppf(alpha / 2 if alternative == "two-sided" else alpha)
         xs_rej = [x for x in xs if x <= crit]
         ys_rej = _normal_pdf(xs_rej, 0, 1)
-        ax.fill_between(
-            xs_rej, ys_rej, 0, alpha=0.45, color="#d62728", label="Rejection region"
-        )
+        ax.fill_between(xs_rej, ys_rej, 0, alpha=0.45, color="#d62728", label="Rejection region")
     if alternative in ("two-sided", "greater"):
         crit = _normal_ppf(1 - (alpha / 2 if alternative == "two-sided" else alpha))
         xs_rej = [x for x in xs if x >= crit]
@@ -298,7 +293,7 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
     """
     plt, _ = _require_matplotlib()
 
-    test_name = (result.test_name or "").lower()
+    (result.test_name or "").lower()
     p_value = result.p_value
     alpha = result.alpha
     stat = result.statistic
@@ -315,7 +310,7 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
 
     # ── comparison bar (two-group t-test) ────────────────────────────────
     if kind == "comparison_bar":
-        import math
+        pass
 
         means = [d_summary.get("group1_mean", 0), d_summary.get("group2_mean", 0)]
         stds = [d_summary.get("group1_std", 0), d_summary.get("group2_std", 0)]
@@ -355,7 +350,6 @@ def plot_result(result: Any, kind: str = "auto") -> Any:
 
 def _draw_p_panel(ax, p_value, alpha, test_stat, df_val, alternative):
     """Draw the p-value distribution panel on an existing Axes object."""
-    import math
 
     n_pts = 300
     xs = [-4.0 + 8.0 * i / n_pts for i in range(n_pts + 1)]
@@ -431,8 +425,7 @@ def generate_report(
             import weasyprint  # type: ignore
         except ImportError as exc:
             raise ImportError(
-                "PDF export requires weasyprint. "
-                "Install with:  pip install weasyprint"
+                "PDF export requires weasyprint. " "Install with:  pip install weasyprint"
             ) from exc
         pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
         if path:

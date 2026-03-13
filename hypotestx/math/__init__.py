@@ -6,19 +6,7 @@ statistical operations, and probability distributions.
 """
 
 # Basic mathematical operations
-from .basic import (
-    PI,
-    E,
-    abs_value,
-    combination,
-    exp,
-    factorial,
-    ln,
-    log,
-    power,
-    sign,
-    sqrt,
-)
+from .basic import PI, E, abs_value, combination, exp, factorial, ln, log, power, sign, sqrt
 
 # Probability distributions
 from .distributions import ChiSquare, Distribution, F, Normal, StudentT

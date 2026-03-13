@@ -2,9 +2,9 @@
 HypoResult class for standardized test results
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from ..utils.formatting import format_effect_size, format_p_value
+from ..utils.formatting import format_p_value
 
 
 class HypoResult:
@@ -229,7 +229,7 @@ class HypoResult:
 
     def __repr__(self) -> str:
         """Detailed representation"""
-        return f"HypoResult(test='{self.test_name}', statistic={self.statistic:.4f}, p_value={self.p_value:.6f})"
+        return f"HypoResult(test='{self.test_name}', statistic={self.statistic:.4f}, p_value={self.p_value:.6f})"  # noqa: E501
 
     def plot(self, kind: str = "auto"):
         """

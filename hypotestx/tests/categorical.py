@@ -9,16 +9,11 @@ Tests
 
 from typing import List, Optional, Union
 
-from ..core.exceptions import DataFormatError, InsufficientDataError
+from ..core.exceptions import DataFormatError
 from ..core.result import HypoResult
-from ..core.validators import (
-    validate_alpha,
-    validate_alternative,
-    validate_contingency_table,
-)
-from ..math.basic import ln, sqrt
-from ..math.distributions import ChiSquare, Normal
-from ..math.special import gamma
+from ..core.validators import validate_alpha, validate_alternative, validate_contingency_table
+from ..math.basic import sqrt
+from ..math.distributions import ChiSquare
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -36,9 +31,7 @@ def _build_expected(observed: List[List[float]]) -> List[List[float]]:
         raise DataFormatError(
             "Contingency table is all zeros — cannot compute expected frequencies"
         )
-    return [
-        [row_sums[r] * col_sums[c] / total for c in range(ncols)] for r in range(nrows)
-    ]
+    return [[row_sums[r] * col_sums[c] / total for c in range(ncols)] for r in range(nrows)]
 
 
 def _hypergeom_pmf(k: int, N: int, K: int, n: int) -> float:
@@ -48,7 +41,6 @@ def _hypergeom_pmf(k: int, N: int, K: int, n: int) -> float:
     Drawing *n* items from a population of *N* where *K* are successes.
     Uses log-space arithmetic to avoid overflow with large factorials.
     """
-    from ..math.special import gamma  # log-gamma for numerics
 
     def log_binom(a: int, b: int) -> float:
         """log C(a, b) using log-gamma"""
@@ -141,7 +133,7 @@ def chi_square_test(
             import warnings
 
             warnings.warn(
-                "Some expected frequencies are less than 5; chi-square approximation may be inaccurate."
+                "Some expected frequencies are less than 5; chi-square approximation may be inaccurate."  # noqa: E501
             )
 
         chi2 = sum((o - e) ** 2 / e for o, e in zip(observed_1d, expected_1d) if e > 0)
@@ -164,9 +156,7 @@ def chi_square_test(
         n = sum(table_2d[r][c] for r in range(nrows) for c in range(ncols))
 
         # Check expected frequencies
-        small_cells = sum(
-            1 for r in range(nrows) for c in range(ncols) if expected_2d[r][c] < 5
-        )
+        small_cells = sum(1 for r in range(nrows) for c in range(ncols) if expected_2d[r][c] < 5)
         if small_cells > 0:
             import warnings
 
@@ -239,8 +229,7 @@ def chi_square_test(
         )
 
     return HypoResult(
-        test_name="Chi-Square Test"
-        + (" of Independence" if not is_1d else " (Goodness-of-Fit)"),
+        test_name="Chi-Square Test" + (" of Independence" if not is_1d else " (Goodness-of-Fit)"),
         statistic=chi2,
         p_value=p_value,
         effect_size=effect_size,

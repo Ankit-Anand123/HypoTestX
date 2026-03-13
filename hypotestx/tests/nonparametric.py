@@ -8,18 +8,12 @@ Tests
 - Kruskal-Wallis H  (k independent samples)
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from ..core.result import HypoResult
-from ..core.validators import (
-    validate_alpha,
-    validate_alternative,
-    validate_data,
-    validate_groups,
-)
+from ..core.validators import validate_alpha, validate_alternative, validate_data, validate_groups
 from ..math.basic import abs_value, sqrt
 from ..math.distributions import ChiSquare, Normal
-from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # Internal helpers

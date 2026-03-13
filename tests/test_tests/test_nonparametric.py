@@ -10,11 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from hypotestx.core.exceptions import InsufficientDataError
 from hypotestx.core.result import HypoResult
-from hypotestx.tests.nonparametric import (
-    kruskal_wallis,
-    mann_whitney_u,
-    wilcoxon_signed_rank,
-)
+from hypotestx.tests.nonparametric import kruskal_wallis, mann_whitney_u, wilcoxon_signed_rank
 
 
 class TestMannWhitneyU(unittest.TestCase):

@@ -13,9 +13,9 @@ summary_table(*groups, names)         -> str   one-line stats per group
 are_paired(a, b)                      -> bool  (same length, plausibly paired)
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..math.statistics import mean, median, std
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # Type coercion
@@ -58,9 +58,7 @@ def coerce_numeric(
             if drop_invalid:
                 bad.append(i)
             else:
-                raise ValueError(
-                    f"{name}: cannot convert value {v!r} at index {i} to float"
-                )
+                raise ValueError(f"{name}: cannot convert value {v!r} at index {i} to float")
     if bad and not drop_invalid:
         pass  # already raised above
     return result
@@ -217,9 +215,7 @@ def validate_sample_data(
         cleaned = coerce_numeric(data, name=name, drop_invalid=False)
 
     if len(cleaned) < min_size:
-        raise ValueError(
-            f"{name}: need at least {min_size} valid observations, got {len(cleaned)}"
-        )
+        raise ValueError(f"{name}: need at least {min_size} valid observations, got {len(cleaned)}")
     return cleaned
 
 
@@ -248,9 +244,7 @@ def summary_table(
         names = [f"Group {i + 1}" for i in range(len(groups))]
 
     col_w = max(max(len(n) for n in names), 8) + 2
-    header = (
-        f"{'Group':<{col_w}}" f"{'n':>6}{'mean':>10}{'std':>10}{'min':>10}{'max':>10}"
-    )
+    header = f"{'Group':<{col_w}}" f"{'n':>6}{'mean':>10}{'std':>10}{'min':>10}{'max':>10}"
     sep = "-" * len(header)
     rows = [header, sep]
 

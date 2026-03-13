@@ -70,9 +70,7 @@ class HuggingFaceBackend(LLMBackend):
     ):
         self.token = token
         self.use_local = use_local
-        self.model = model or (
-            _DEFAULT_LOCAL_MODEL if use_local else _DEFAULT_API_MODEL
-        )
+        self.model = model or (_DEFAULT_LOCAL_MODEL if use_local else _DEFAULT_API_MODEL)
         self.timeout = timeout
         self.max_tokens = max_tokens
         self.device = device
@@ -120,8 +118,7 @@ class HuggingFaceBackend(LLMBackend):
             body = exc.read().decode("utf-8", errors="replace")
             if exc.code == 503:
                 raise RuntimeError(
-                    f"[HuggingFace] Model '{self.model}' is loading. "
-                    "Wait ~20s and retry."
+                    f"[HuggingFace] Model '{self.model}' is loading. " "Wait ~20s and retry."
                 ) from exc
             raise RuntimeError(f"[HuggingFace] HTTP {exc.code}: {body}") from exc
         except urllib.error.URLError as exc:

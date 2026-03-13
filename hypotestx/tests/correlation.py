@@ -8,7 +8,7 @@ Tests
 - Point-biserial correlation
 """
 
-from typing import List, Optional
+from typing import List
 
 from ..core.exceptions import DataFormatError, InsufficientDataError
 from ..core.result import HypoResult
@@ -46,7 +46,7 @@ def _rank_data(data: List[float]) -> List[float]:
 
 def _pearson_r(x: List[float], y: List[float]) -> float:
     """Compute Pearson r between two equal-length lists of floats."""
-    n = len(x)
+    len(x)
     x_mean = mean(x)
     y_mean = mean(y)
 
@@ -116,21 +116,13 @@ def pearson_correlation(
     n = len(x)
 
     if n < 3:
-        raise InsufficientDataError(
-            "Pearson correlation requires at least 3 data points"
-        )
+        raise InsufficientDataError("Pearson correlation requires at least 3 data points")
 
     r = _pearson_r(x, y)
     p_value, t_stat = _r_to_pvalue(r, n, alternative)
 
     df = n - 2
-    t_dist = StudentT(df)
-    t_critical = (
-        t_dist.ppf(1 - alpha / 2)
-        if alternative == "two-sided"
-        else t_dist.ppf(1 - alpha)
-    )
-
+    df = n - 2
     # Fisher's z transformation for confidence interval of r
     import math
 
@@ -162,7 +154,7 @@ def pearson_correlation(
         f"The Pearson correlation is {significance} "
         f"(r({df}) = {r:.4f}, t = {t_stat:.4f}, p = {p_value:.4f}). "
         + (
-            f"There is a {'positive' if r > 0 else 'negative'} linear relationship between the variables."
+            f"There is a {'positive' if r > 0 else 'negative'} linear relationship between the variables."  # noqa: E501
             if p_value < alpha
             else "No significant linear relationship detected."
         )
@@ -220,9 +212,7 @@ def spearman_correlation(
     n = len(x)
 
     if n < 3:
-        raise InsufficientDataError(
-            "Spearman correlation requires at least 3 data points"
-        )
+        raise InsufficientDataError("Spearman correlation requires at least 3 data points")
 
     # Compute ranks
     x_ranks = _rank_data(x)
@@ -246,7 +236,7 @@ def spearman_correlation(
         f"The Spearman correlation is {significance} "
         f"(rho({df}) = {rho:.4f}, t = {t_stat:.4f}, p = {p_value:.4f}). "
         + (
-            f"There is a {'positive' if rho > 0 else 'negative'} monotonic relationship between the variables."
+            f"There is a {'positive' if rho > 0 else 'negative'} monotonic relationship between the variables."  # noqa: E501
             if p_value < alpha
             else "No significant monotonic relationship detected."
         )

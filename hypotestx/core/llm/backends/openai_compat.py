@@ -210,6 +210,4 @@ class OpenAICompatBackend(LLMBackend):
                 f"<OpenAICompatBackend provider='azure' "
                 f"deployment='{self.model}' api_version='{self.api_version}'>"
             )
-        return (
-            f"<OpenAICompatBackend provider='{self.provider}' " f"model='{self.model}'>"
-        )
+        return f"<OpenAICompatBackend provider='{self.provider}' " f"model='{self.model}'>"

@@ -2,9 +2,9 @@
 Basic statistical functions implemented from scratch
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
-from .basic import abs_value, power, sqrt
+from .basic import abs_value, sqrt
 
 
 def mean(data: List[float]) -> float:

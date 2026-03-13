@@ -1,6 +1,6 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple
 
-from .basic import abs_value, sign, sqrt
+from .basic import abs_value, sqrt
 
 
 class Matrix:
@@ -130,9 +130,7 @@ def vector_norm(vector: List[float], p: int = 2) -> float:
 def matrix_multiply(A: Matrix, B: Matrix) -> Matrix:
     """Multiply two matrices"""
     if A.cols != B.rows:
-        raise ValueError(
-            f"Cannot multiply {A.rows}x{A.cols} and {B.rows}x{B.cols} matrices"
-        )
+        raise ValueError(f"Cannot multiply {A.rows}x{A.cols} and {B.rows}x{B.cols} matrices")
 
     result = []
     for i in range(A.rows):

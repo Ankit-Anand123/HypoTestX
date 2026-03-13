@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from ..base import LLMBackend
 
@@ -82,11 +82,7 @@ class GeminiBackend(LLMBackend):
             if role == "system":
                 system_parts.append(content)
             elif role == "user":
-                text = (
-                    "\n\n".join(system_parts) + "\n\n" + content
-                    if system_parts
-                    else content
-                )
+                text = "\n\n".join(system_parts) + "\n\n" + content if system_parts else content
                 system_parts = []  # consumed
                 gemini_contents.append(
                     {

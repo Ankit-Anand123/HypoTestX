@@ -4,8 +4,6 @@ Tests for hypotestx.math.statistics — descriptive statistics functions.
 
 import math
 
-import pytest
-
 from hypotestx.math.statistics import (
     correlation,
     covariance,

@@ -2,7 +2,6 @@
 Tests for hypotestx.stats.inference — CIs and z-test.
 """
 
-import math
 import os
 import sys
 

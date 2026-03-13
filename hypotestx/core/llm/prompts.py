@@ -28,7 +28,7 @@ which statistical test to run and which columns to use.
 | test key              | When to use |
 |-----------------------|-------------|
 | one_sample_ttest      | One group, test if mean equals a number (e.g. "Is the mean height 170?") |
-| two_sample_ttest      | Two independent groups, compare means (e.g. "Do males earn more than females?") |
+| two_sample_ttest      | Two independent groups, compare means (e.g. "Do males earn more than females?") |  # noqa: E501
 | paired_ttest          | Same subjects measured twice, compare before/after means |
 | anova                 | Three or more independent groups, compare means |
 | mann_whitney          | Two groups, non-parametric (use when data is non-normal or ordinal) |
@@ -148,11 +148,7 @@ def build_schema(df) -> "SchemaInfo":
                 dtype_str = str(dtype)
                 info.dtypes[col] = dtype_str
                 col_series = df[col].drop_nulls()
-                if (
-                    "Utf8" in dtype_str
-                    or "Categorical" in dtype_str
-                    or "Boolean" in dtype_str
-                ):
+                if "Utf8" in dtype_str or "Categorical" in dtype_str or "Boolean" in dtype_str:
                     vals = [str(v) for v in col_series.unique().to_list()[:20]]
                     info.categoricals[col] = vals
                 elif "Int" in dtype_str or "Float" in dtype_str:

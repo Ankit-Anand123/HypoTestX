@@ -121,9 +121,7 @@ def beta(a: float, b: float) -> float:
         n = int(round(a))
         m = int(round(b))
         if n <= 20 and m <= 20 and (n + m) <= 20:
-            return float(factorial(n - 1) * factorial(m - 1)) / float(
-                factorial(n + m - 1)
-            )
+            return float(factorial(n - 1) * factorial(m - 1)) / float(factorial(n + m - 1))
 
     return gamma(a) * gamma(b) / gamma(a + b)
 

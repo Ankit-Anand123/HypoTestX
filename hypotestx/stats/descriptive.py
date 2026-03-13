@@ -15,7 +15,7 @@ frequency_table(data)          -> list of (value, count, pct) tuples
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..math.basic import abs_value, ln, sqrt
+from ..math.basic import abs_value, sqrt
 from ..math.statistics import (
     iqr,
     kurtosis,
@@ -245,7 +245,7 @@ def detect_outliers(
         meta    : dict with bounds or thresholds used
     """
     data = [float(x) for x in data]
-    n = len(data)
+    len(data)
     method = method.lower()
 
     if method == "iqr":

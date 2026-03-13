@@ -8,7 +8,7 @@ and proportion tests that accepts the typical A/B test nomenclature
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Sequence
+from typing import Any, Sequence
 
 
 def ab_test_proportions(

@@ -15,9 +15,9 @@ robust_scale(data)            -> (x - median) / IQR
 apply(data, fn)               -> apply arbitrary fn element-wise
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Tuple
 
-from ..math.basic import abs_value, ln, sqrt
+from ..math.basic import ln
 from ..math.statistics import iqr, mean, median, percentile, std
 
 # ---------------------------------------------------------------------------

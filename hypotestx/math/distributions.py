@@ -1,7 +1,5 @@
-from typing import List, Optional
-
-from .basic import PI, combination, exp, factorial, ln, power, sqrt
-from .special import beta, beta_incomplete, erf, gamma, gamma_incomplete
+from .basic import PI, exp, ln, power, sqrt
+from .special import beta_incomplete, erf, gamma, gamma_incomplete
 
 
 class Distribution:
@@ -101,9 +99,7 @@ class StudentT(Distribution):
 
     def pdf(self, x: float) -> float:
         """t-distribution probability density function"""
-        coefficient = gamma((self.df + 1) / 2) / (
-            sqrt(self.df * PI) * gamma(self.df / 2)
-        )
+        coefficient = gamma((self.df + 1) / 2) / (sqrt(self.df * PI) * gamma(self.df / 2))
         factor = power(1 + x * x / self.df, -(self.df + 1) / 2)
         return coefficient * factor
 
@@ -254,9 +250,7 @@ class F(Distribution):
             )
             coefficient *= power(self.df1 / self.df2, self.df1 / 2)
             coefficient *= power(x, self.df1 / 2 - 1)
-            denominator = power(
-                1 + (self.df1 / self.df2) * x, (self.df1 + self.df2) / 2
-            )
+            denominator = power(1 + (self.df1 / self.df2) * x, (self.df1 + self.df2) / 2)
 
             return coefficient / denominator
         except (OverflowError, ZeroDivisionError):

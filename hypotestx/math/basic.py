@@ -2,9 +2,6 @@
 Basic mathematical operations implemented from scratch
 """
 
-import sys
-from typing import List, Optional, Union
-
 
 def abs_value(x: float) -> float:
     """Absolute value"""

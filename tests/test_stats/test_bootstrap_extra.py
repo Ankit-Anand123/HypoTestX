@@ -14,7 +14,6 @@ from hypotestx.math.statistics import mean as _mean
 from hypotestx.math.statistics import median as _median
 from hypotestx.stats.bootstrap import (
     bootstrap_ci,
-    bootstrap_mean_ci,
     bootstrap_test,
     bootstrap_two_sample_ci,
     permutation_test,
@@ -32,17 +31,13 @@ GROUP_LOW = [3.0, 4.0, 3.5, 4.5, 3.0, 4.0, 3.5, 4.0, 3.8, 4.2]
 
 class TestBootstrapTwoSampleCI:
     def test_returns_three_values(self):
-        lo, hi, boot = bootstrap_two_sample_ci(
-            GROUP_HIGH, GROUP_LOW, n_resamples=500, seed=42
-        )
+        lo, hi, boot = bootstrap_two_sample_ci(GROUP_HIGH, GROUP_LOW, n_resamples=500, seed=42)
         assert isinstance(lo, float)
         assert isinstance(hi, float)
         assert isinstance(boot, list)
 
     def test_lower_lt_upper(self):
-        lo, hi, _ = bootstrap_two_sample_ci(
-            GROUP_HIGH, GROUP_LOW, n_resamples=500, seed=42
-        )
+        lo, hi, _ = bootstrap_two_sample_ci(GROUP_HIGH, GROUP_LOW, n_resamples=500, seed=42)
         assert lo < hi
 
     def test_true_diff_inside_ci(self):
@@ -63,9 +58,7 @@ class TestBootstrapTwoSampleCI:
         assert len(boot) == 500
 
     def test_boot_dist_length(self):
-        _, _, boot = bootstrap_two_sample_ci(
-            GROUP_HIGH, GROUP_LOW, n_resamples=300, seed=0
-        )
+        _, _, boot = bootstrap_two_sample_ci(GROUP_HIGH, GROUP_LOW, n_resamples=300, seed=0)
         assert len(boot) == 300
 
 
@@ -76,9 +69,7 @@ class TestBootstrapTwoSampleCI:
 
 class TestBootstrapTest:
     def test_returns_three_values(self):
-        p, obs, boot = bootstrap_test(
-            DATA, _mean, null_value=3.5, n_resamples=500, seed=42
-        )
+        p, obs, boot = bootstrap_test(DATA, _mean, null_value=3.5, n_resamples=500, seed=42)
         assert isinstance(p, float)
         assert isinstance(obs, float)
         assert isinstance(boot, list)
@@ -89,17 +80,13 @@ class TestBootstrapTest:
 
     def test_clearly_wrong_null_low_pvalue(self):
         big_data = [10.0] * 30
-        p, _, _ = bootstrap_test(
-            big_data, _mean, null_value=0.0, n_resamples=1000, seed=42
-        )
+        p, _, _ = bootstrap_test(big_data, _mean, null_value=0.0, n_resamples=1000, seed=42)
         assert p < 0.05
 
     def test_true_null_high_pvalue(self):
         # null = observed mean -> should usually be non-significant
         obs_mean = _mean(DATA)
-        p, _, _ = bootstrap_test(
-            DATA, _mean, null_value=obs_mean, n_resamples=1000, seed=42
-        )
+        p, _, _ = bootstrap_test(DATA, _mean, null_value=obs_mean, n_resamples=1000, seed=42)
         assert p > 0.05
 
     def test_alternative_greater(self):
@@ -123,9 +110,7 @@ class TestBootstrapTest:
 
     def test_invalid_alternative_raises(self):
         with pytest.raises(ValueError):
-            bootstrap_test(
-                DATA, _mean, null_value=3.0, alternative="invalid", n_resamples=100
-            )
+            bootstrap_test(DATA, _mean, null_value=3.0, alternative="invalid", n_resamples=100)
 
     def test_boot_dist_length(self):
         _, _, boot = bootstrap_test(DATA, _mean, n_resamples=400, seed=5)
@@ -198,9 +183,7 @@ class TestBootstrapCIBca:
         assert isinstance(boot, list)
 
     def test_bca_covers_mean(self):
-        lo, hi, _ = bootstrap_ci(
-            DATA, _mean, ci=0.95, n_resamples=2000, method="bca", seed=99
-        )
+        lo, hi, _ = bootstrap_ci(DATA, _mean, ci=0.95, n_resamples=2000, method="bca", seed=99)
         assert lo <= _mean(DATA) <= hi
 
     def test_invalid_method_raises(self):

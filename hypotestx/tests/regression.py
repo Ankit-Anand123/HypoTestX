@@ -11,11 +11,10 @@ All calculations use the core math layer (no sklearn / statsmodels).
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 from ..core.result import HypoResult
-from ..math.basic import sqrt
-from ..math.statistics import correlation, covariance, mean, std, variance
+from ..math.statistics import correlation, mean
 
 # ---------------------------------------------------------------------------
 # Simple Ordinary-Least-Squares helpers
@@ -31,7 +30,7 @@ def _ols_simple(
 
     Returns (intercept, slope, residuals).
     """
-    n = len(x)
+    len(x)
     xm = mean(x)
     ym = mean(y)
     ss_xy = sum((xi - xm) * (yi - ym) for xi, yi in zip(x, y))

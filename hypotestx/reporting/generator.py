@@ -15,7 +15,7 @@ export_csv(results, path)       -> None  write batch results to CSV
 from typing import List, Optional
 
 from ..core.result import HypoResult
-from .formatters import apa_stat, format_ci, format_effect, format_p
+from .formatters import apa_stat, format_p
 
 # ---------------------------------------------------------------------------
 # APA-style paragraph
@@ -136,7 +136,7 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
     # --- Hypothesis ---
     lines.append("HYPOTHESIS")
     lines.append("-" * width)
-    lines.append(f"  H0: No effect / no difference")
+    lines.append("  H0: No effect / no difference")
     lines.append(f"  H1: Alternative ({result.alternative})")
     lines.append(f"  Significance level (alpha): {result.alpha}")
     lines.append("")
@@ -303,9 +303,7 @@ def batch_report(
             f"{sig_marker:>{col_sig}}"
         )
         if show_effect and r.effect_size is not None:
-            eff_str = (
-                f"{r.effect_size_name} = {r.effect_size:.3f} ({r.effect_magnitude})"
-            )
+            eff_str = f"{r.effect_size_name} = {r.effect_size:.3f} ({r.effect_magnitude})"
             row += f"  {eff_str:<20}"
 
         lines.append(row)
@@ -369,13 +367,9 @@ def export_csv(
                 "alternative": r.alternative,
                 "degrees_of_freedom": r.degrees_of_freedom or "",
                 "sample_sizes": r.sample_sizes or "",
-                "effect_size": (
-                    round(r.effect_size, 6) if r.effect_size is not None else ""
-                ),
+                "effect_size": (round(r.effect_size, 6) if r.effect_size is not None else ""),
                 "effect_size_name": r.effect_size_name or "",
-                "effect_magnitude": (
-                    r.effect_magnitude if r.effect_size is not None else ""
-                ),
+                "effect_magnitude": (r.effect_magnitude if r.effect_size is not None else ""),
                 "ci_lower": round(ci_lower, 6) if ci_lower != "" else "",
                 "ci_upper": round(ci_upper, 6) if ci_upper != "" else "",
             }

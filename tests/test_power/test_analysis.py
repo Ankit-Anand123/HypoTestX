@@ -5,15 +5,9 @@ Tests for hypotestx.power — power analysis and sample size calculation.
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.power.analysis import (
-    power_anova,
-    power_ttest_one_sample,
-    power_ttest_two_sample,
-)
+from hypotestx.power.analysis import power_anova, power_ttest_one_sample, power_ttest_two_sample
 from hypotestx.power.sample_size import n_ttest_one_sample, n_ttest_two_sample
 
 
@@ -42,12 +36,8 @@ class TestPowerTTestOneSample:
         assert result > 0.99
 
     def test_alternative_one_sided(self):
-        p2 = power_ttest_one_sample(
-            effect_size=0.5, n=30, alpha=0.05, alternative="greater"
-        )
-        p1 = power_ttest_one_sample(
-            effect_size=0.5, n=30, alpha=0.05, alternative="two-sided"
-        )
+        p2 = power_ttest_one_sample(effect_size=0.5, n=30, alpha=0.05, alternative="greater")
+        p1 = power_ttest_one_sample(effect_size=0.5, n=30, alpha=0.05, alternative="two-sided")
         assert p2 >= p1
 
 

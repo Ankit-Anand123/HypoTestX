@@ -6,7 +6,7 @@ Planned feature; file reserved for v0.2.0.
 
 from __future__ import annotations
 
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 from .result import HypoResult
 

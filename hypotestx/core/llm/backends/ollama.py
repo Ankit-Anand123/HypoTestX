@@ -86,8 +86,7 @@ class OllamaBackend(LLMBackend):
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as exc:
             raise RuntimeError(
-                f"[Ollama] Could not reach {url}. "
-                "Make sure Ollama is running: `ollama serve`"
+                f"[Ollama] Could not reach {url}. " "Make sure Ollama is running: `ollama serve`"
             ) from exc
 
         return data["message"]["content"]

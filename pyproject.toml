@@ -55,7 +55,7 @@ visualization = [
     "matplotlib>=3.5.0",
     "plotly>=5.0.0",
 ]
-# Optional: enables export_pdf() via weasyprint (HTML → PDF).
+# Optional: enables export_pdf() via weasyprint (HTML â†’ PDF).
 reporting = [
     "weasyprint>=53.0",
 ]
@@ -80,12 +80,12 @@ where = ["."]
 include = ["hypotestx*"]
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ['py38']
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.pytest.ini_options]
 minversion = "7.0"

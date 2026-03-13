@@ -5,19 +5,12 @@ Tests for hypotestx.reporting.generator — apa_report, text_report, batch_repor
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.reporting.generator import (
-    apa_report,
-    batch_report,
-    export_csv,
-    text_report,
-)
+from hypotestx.reporting.generator import apa_report, batch_report, export_csv, text_report
 from hypotestx.tests.categorical import chi_square_test
 from hypotestx.tests.correlation import pearson_correlation
-from hypotestx.tests.parametric import one_sample_ttest, paired_ttest, two_sample_ttest
+from hypotestx.tests.parametric import one_sample_ttest, two_sample_ttest
 
 # ---------------------------------------------------------------------------
 # Shared test results
@@ -84,9 +77,7 @@ class TestTextReport:
 
     def test_contains_pvalue(self):
         report = text_report(TTEST_RESULT)
-        assert (
-            "p-value" in report.lower() or str(round(TTEST_RESULT.p_value, 2)) in report
-        )
+        assert "p-value" in report.lower() or str(round(TTEST_RESULT.p_value, 2)) in report
 
     def test_contains_significance_decision(self):
         report = text_report(TTEST_RESULT)
