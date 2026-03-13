@@ -24,16 +24,13 @@ def ab_test_proportions(
 
     Returns a :class:`~hypotestx.core.result.HypoResult`.
     """
-    from ..tests.parametric import two_proportion_z_test  # noqa: F401
+    from ..tests.categorical import chi_square_test  # noqa: F401
 
-    return two_proportion_z_test(
-        control_successes,
-        control_n,
-        treatment_successes,
-        treatment_n,
-        alpha=alpha,
-        alternative=alternative,
-    )
+    table = [
+        [float(control_successes), float(control_n - control_successes)],
+        [float(treatment_successes), float(treatment_n - treatment_successes)],
+    ]
+    return chi_square_test(table, alpha=alpha)
 
 
 def ab_test_means(
@@ -47,9 +44,9 @@ def ab_test_means(
 
     Returns a :class:`~hypotestx.core.result.HypoResult`.
     """
-    from ..tests.parametric import welch_ttest  # noqa: F401
+    from ..tests.parametric import two_sample_ttest  # noqa: F401
 
-    return welch_ttest(
+    return two_sample_ttest(
         list(control),
         list(treatment),
         alpha=alpha,

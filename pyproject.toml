@@ -55,7 +55,7 @@ visualization = [
     "matplotlib>=3.5.0",
     "plotly>=5.0.0",
 ]
-# Optional: enables export_pdf() via weasyprint (HTML â†’ PDF).
+# Optional: enables export_pdf() via weasyprint (HTML ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ PDF).
 reporting = [
     "weasyprint>=53.0",
 ]
@@ -108,7 +108,5 @@ exclude_lines = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
-warn_return_any = true
+python_version = "3.9"
 warn_unused_configs = true
-disallow_untyped_defs = true

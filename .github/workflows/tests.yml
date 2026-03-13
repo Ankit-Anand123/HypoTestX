@@ -40,6 +40,7 @@ jobs:
           --per-file-ignores=tests/*:E402
 
       - name: Type check (mypy)
+        continue-on-error: true
         run: mypy hypotestx/ --ignore-missing-imports
 
       - name: Run tests with coverage

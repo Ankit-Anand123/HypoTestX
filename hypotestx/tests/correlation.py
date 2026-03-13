@@ -60,7 +60,7 @@ def _pearson_r(x: List[float], y: List[float]) -> float:
     return num / denom
 
 
-def _r_to_pvalue(r: float, n: int, alternative: str) -> float:
+def _r_to_pvalue(r: float, n: int, alternative: str) -> tuple:
     """Convert Pearson r to a p-value using the t-distribution."""
     if abs_value(r) >= 1.0:
         return 0.0, float("inf") * (1 if r >= 0 else -1)
