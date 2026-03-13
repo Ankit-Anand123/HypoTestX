@@ -14,9 +14,7 @@ from hypotestx.power.sample_size import (
     n_anova,
     n_chi_square,
     n_correlation,
-    n_ttest_one_sample,
     n_ttest_paired,
-    n_ttest_two_sample,
     sample_size_summary,
 )
 
