@@ -1,31 +1,33 @@
 """
 Tests for hypotestx.reporting.generator — apa_report, text_report, batch_report.
 """
-import pytest
-import sys, os
+
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.reporting.generator import apa_report, text_report, batch_report, export_csv
-from hypotestx.tests.parametric import two_sample_ttest, one_sample_ttest, paired_ttest
-from hypotestx.tests.correlation import pearson_correlation
+from hypotestx.reporting.generator import apa_report, batch_report, export_csv, text_report
 from hypotestx.tests.categorical import chi_square_test
-
+from hypotestx.tests.correlation import pearson_correlation
+from hypotestx.tests.parametric import one_sample_ttest, two_sample_ttest
 
 # ---------------------------------------------------------------------------
 # Shared test results
 # ---------------------------------------------------------------------------
 
 G1 = [8.0, 9.0, 10.0, 11.0, 9.5, 10.5, 9.0, 10.0, 11.5, 8.5]
-G2 = [6.0, 7.0,  6.5,  7.5, 6.0,  7.0, 6.5,  7.0,  7.5, 6.0]
-TTEST_RESULT   = two_sample_ttest(G1, G2)
-ONE_SAMP       = one_sample_ttest([5.5, 6.0, 5.8, 6.1, 5.7] * 4, mu=5.0)
-CORR_RESULT    = pearson_correlation(G1, G2)
-CHISQ_RESULT   = chi_square_test([[10, 5], [3, 12]])
+G2 = [6.0, 7.0, 6.5, 7.5, 6.0, 7.0, 6.5, 7.0, 7.5, 6.0]
+TTEST_RESULT = two_sample_ttest(G1, G2)
+ONE_SAMP = one_sample_ttest([5.5, 6.0, 5.8, 6.1, 5.7] * 4, mu=5.0)
+CORR_RESULT = pearson_correlation(G1, G2)
+CHISQ_RESULT = chi_square_test([[10, 5], [3, 12]])
 
 
 # ---------------------------------------------------------------------------
 # apa_report
 # ---------------------------------------------------------------------------
+
 
 class TestApaReport:
     def test_returns_string(self):
@@ -59,6 +61,7 @@ class TestApaReport:
 # text_report
 # ---------------------------------------------------------------------------
 
+
 class TestTextReport:
     def test_returns_string(self):
         assert isinstance(text_report(TTEST_RESULT), str)
@@ -89,6 +92,7 @@ class TestTextReport:
 # batch_report
 # ---------------------------------------------------------------------------
 
+
 class TestBatchReport:
     def test_returns_string(self):
         report = batch_report([TTEST_RESULT, ONE_SAMP])
@@ -111,6 +115,7 @@ class TestBatchReport:
 # ---------------------------------------------------------------------------
 # export_csv
 # ---------------------------------------------------------------------------
+
 
 class TestExportCsv:
     def test_creates_file(self, tmp_path):

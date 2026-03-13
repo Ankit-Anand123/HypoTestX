@@ -27,18 +27,18 @@ Usage:
                              model="microsoft/Phi-3.5-mini-instruct",
                              use_local=True))
 """
+
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Any, Dict, List, Optional
 
 from ..base import LLMBackend
 
-
-_HF_API_URL       = "https://api-inference.huggingface.co/models"
-_DEFAULT_API_MODEL  = "HuggingFaceH4/zephyr-7b-beta"
+_HF_API_URL = "https://api-inference.huggingface.co/models"
+_DEFAULT_API_MODEL = "HuggingFaceH4/zephyr-7b-beta"
 _DEFAULT_LOCAL_MODEL = "microsoft/Phi-3.5-mini-instruct"
 
 
@@ -68,15 +68,14 @@ class HuggingFaceBackend(LLMBackend):
         device: str = "cpu",
         load_kwargs: Optional[Dict[str, Any]] = None,
     ):
-        self.token       = token
-        self.use_local   = use_local
-        self.model       = model or (_DEFAULT_LOCAL_MODEL if use_local
-                                     else _DEFAULT_API_MODEL)
-        self.timeout     = timeout
-        self.max_tokens  = max_tokens
-        self.device      = device
+        self.token = token
+        self.use_local = use_local
+        self.model = model or (_DEFAULT_LOCAL_MODEL if use_local else _DEFAULT_API_MODEL)
+        self.timeout = timeout
+        self.max_tokens = max_tokens
+        self.device = device
         self.load_kwargs = load_kwargs or {}
-        self._pipeline   = None          # lazy-loaded local pipeline
+        self._pipeline = None  # lazy-loaded local pipeline
 
     # ------------------------------------------------------------------ #
     # LLMBackend interface                                                 #
@@ -96,10 +95,15 @@ class HuggingFaceBackend(LLMBackend):
         # Flatten messages into a single prompt (chat template best-effort)
         prompt = _format_messages_as_prompt(messages)
 
-        payload = json.dumps({
-            "inputs": prompt,
-            "parameters": {"max_new_tokens": self.max_tokens, "return_full_text": False},
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": self.max_tokens,
+                    "return_full_text": False,
+                },
+            }
+        ).encode("utf-8")
 
         url = f"{_HF_API_URL}/{self.model}"
         headers: Dict[str, str] = {"Content-Type": "application/json"}
@@ -114,14 +118,11 @@ class HuggingFaceBackend(LLMBackend):
             body = exc.read().decode("utf-8", errors="replace")
             if exc.code == 503:
                 raise RuntimeError(
-                    f"[HuggingFace] Model '{self.model}' is loading. "
-                    "Wait ~20s and retry."
+                    f"[HuggingFace] Model '{self.model}' is loading. " "Wait ~20s and retry."
                 ) from exc
             raise RuntimeError(f"[HuggingFace] HTTP {exc.code}: {body}") from exc
         except urllib.error.URLError as exc:
-            raise RuntimeError(
-                f"[HuggingFace] Connection error: {exc.reason}"
-            ) from exc
+            raise RuntimeError(f"[HuggingFace] Connection error: {exc.reason}") from exc
 
         if isinstance(data, list) and len(data) > 0:
             return data[0].get("generated_text", "")
@@ -141,9 +142,9 @@ class HuggingFaceBackend(LLMBackend):
             # Modern chat-template API
             output = pipe(
                 messages,
-                max_new_tokens  = self.max_tokens,
-                do_sample       = False,
-                return_full_text= False,
+                max_new_tokens=self.max_tokens,
+                do_sample=False,
+                return_full_text=False,
             )
             return output[0]["generated_text"]
         except TypeError:
@@ -151,9 +152,9 @@ class HuggingFaceBackend(LLMBackend):
             prompt = _format_messages_as_prompt(messages)
             output = pipe(
                 prompt,
-                max_new_tokens  = self.max_tokens,
-                do_sample       = False,
-                return_full_text= False,
+                max_new_tokens=self.max_tokens,
+                do_sample=False,
+                return_full_text=False,
             )
             return output[0]["generated_text"]
 
@@ -188,6 +189,7 @@ class HuggingFaceBackend(LLMBackend):
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _format_messages_as_prompt(messages: List[Dict[str, str]]) -> str:
     """
     Simple chat-template fallback for models that don't support a message list.
@@ -195,7 +197,7 @@ def _format_messages_as_prompt(messages: List[Dict[str, str]]) -> str:
     """
     parts = []
     for msg in messages:
-        role    = msg["role"]
+        role = msg["role"]
         content = msg["content"]
         if role == "system":
             parts.append(f"<|im_start|>system\n{content}<|im_end|>")

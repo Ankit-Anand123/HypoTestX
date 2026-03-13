@@ -7,19 +7,25 @@ Tests
 - Spearman rank-order correlation
 - Point-biserial correlation
 """
-from typing import List, Optional
 
-from ..math.distributions import StudentT
-from ..math.basic import sqrt, abs_value
-from ..math.statistics import mean, std
-from ..core.result import HypoResult
-from ..core.validators import validate_data, validate_alpha, validate_alternative, validate_paired_data
+from typing import List
+
 from ..core.exceptions import DataFormatError, InsufficientDataError
-
+from ..core.result import HypoResult
+from ..core.validators import (
+    validate_alpha,
+    validate_alternative,
+    validate_data,
+    validate_paired_data,
+)
+from ..math.basic import abs_value, sqrt
+from ..math.distributions import StudentT
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _rank_data(data: List[float]) -> List[float]:
     """Assign average ranks to a list (ties get mean rank)."""
@@ -40,7 +46,7 @@ def _rank_data(data: List[float]) -> List[float]:
 
 def _pearson_r(x: List[float], y: List[float]) -> float:
     """Compute Pearson r between two equal-length lists of floats."""
-    n = len(x)
+    len(x)
     x_mean = mean(x)
     y_mean = mean(y)
 
@@ -54,13 +60,13 @@ def _pearson_r(x: List[float], y: List[float]) -> float:
     return num / denom
 
 
-def _r_to_pvalue(r: float, n: int, alternative: str) -> float:
+def _r_to_pvalue(r: float, n: int, alternative: str) -> tuple:
     """Convert Pearson r to a p-value using the t-distribution."""
     if abs_value(r) >= 1.0:
-        return 0.0, float('inf') * (1 if r >= 0 else -1)
+        return 0.0, float("inf") * (1 if r >= 0 else -1)
 
     df = n - 2
-    t_stat = r * sqrt(df) / sqrt(1 - r ** 2)
+    t_stat = r * sqrt(df) / sqrt(1 - r**2)
     t_dist = StudentT(df)
 
     if alternative == "two-sided":
@@ -76,6 +82,7 @@ def _r_to_pvalue(r: float, n: int, alternative: str) -> float:
 # ---------------------------------------------------------------------------
 # Pearson Correlation
 # ---------------------------------------------------------------------------
+
 
 def pearson_correlation(
     x: List[float],
@@ -115,18 +122,17 @@ def pearson_correlation(
     p_value, t_stat = _r_to_pvalue(r, n, alternative)
 
     df = n - 2
-    t_dist = StudentT(df)
-    t_critical = t_dist.ppf(1 - alpha / 2) if alternative == "two-sided" else t_dist.ppf(1 - alpha)
-
+    df = n - 2
     # Fisher's z transformation for confidence interval of r
     import math
+
     if abs_value(r) < 1.0:
         z_r = 0.5 * math.log((1 + r) / (1 - r))
         se_z = 1.0 / sqrt(n - 3) if n > 3 else float("inf")
         z_crit = 1.96 if alternative == "two-sided" else 1.645
-        ci_z_low  = z_r - z_crit * se_z
+        ci_z_low = z_r - z_crit * se_z
         ci_z_high = z_r + z_crit * se_z
-        r_low  = (math.exp(2 * ci_z_low)  - 1) / (math.exp(2 * ci_z_low)  + 1)
+        r_low = (math.exp(2 * ci_z_low) - 1) / (math.exp(2 * ci_z_low) + 1)
         r_high = (math.exp(2 * ci_z_high) - 1) / (math.exp(2 * ci_z_high) + 1)
         ci = (r_low, r_high)
     else:
@@ -148,7 +154,7 @@ def pearson_correlation(
         f"The Pearson correlation is {significance} "
         f"(r({df}) = {r:.4f}, t = {t_stat:.4f}, p = {p_value:.4f}). "
         + (
-            f"There is a {'positive' if r > 0 else 'negative'} linear relationship between the variables."
+            f"There is a {'positive' if r > 0 else 'negative'} linear relationship between the variables."  # noqa: E501
             if p_value < alpha
             else "No significant linear relationship detected."
         )
@@ -173,6 +179,7 @@ def pearson_correlation(
 # ---------------------------------------------------------------------------
 # Spearman Rank Correlation
 # ---------------------------------------------------------------------------
+
 
 def spearman_correlation(
     x: List[float],
@@ -229,7 +236,7 @@ def spearman_correlation(
         f"The Spearman correlation is {significance} "
         f"(rho({df}) = {rho:.4f}, t = {t_stat:.4f}, p = {p_value:.4f}). "
         + (
-            f"There is a {'positive' if rho > 0 else 'negative'} monotonic relationship between the variables."
+            f"There is a {'positive' if rho > 0 else 'negative'} monotonic relationship between the variables."  # noqa: E501
             if p_value < alpha
             else "No significant monotonic relationship detected."
         )
@@ -254,6 +261,7 @@ def spearman_correlation(
 # ---------------------------------------------------------------------------
 # Point-Biserial Correlation
 # ---------------------------------------------------------------------------
+
 
 def point_biserial_correlation(
     continuous: List[float],
@@ -314,7 +322,7 @@ def point_biserial_correlation(
 
     M1 = mean(group1)
     M0 = mean(group0)
-    S_y = std(continuous, ddof=0)   # population std for r_pb formula
+    S_y = std(continuous, ddof=0)  # population std for r_pb formula
 
     if S_y == 0.0:
         raise ValueError("Standard deviation of 'continuous' is zero")

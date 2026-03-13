@@ -15,18 +15,19 @@ confidence_interval_difference_of_means(group1, group2, confidence)
 z_test_one_sample(data, mu0, alpha, alternative)
     -> (z_stat, p_value)  Large-sample z-test.
 """
+
 from __future__ import annotations
-import math
-from typing import List, Optional, Sequence, Tuple
 
-from ..math.statistics import mean, std, variance
-from ..math.distributions import Normal, StudentT
+from typing import Optional, Sequence, Tuple
+
 from ..math.basic import sqrt
-
+from ..math.distributions import Normal, StudentT
+from ..math.statistics import mean, std
 
 # ---------------------------------------------------------------------------
 # CI for a single mean  (t-based)
 # ---------------------------------------------------------------------------
+
 
 def confidence_interval_mean(
     data: Sequence[float],
@@ -54,9 +55,9 @@ def confidence_interval_mean(
         raise ValueError("confidence must be strictly between 0 and 1")
 
     xbar = mean(data)
-    se   = std(data) / sqrt(n)
-    df   = n - 1
-    t    = StudentT(df)
+    se = std(data) / sqrt(n)
+    df = n - 1
+    t = StudentT(df)
     alpha = 1.0 - confidence
 
     if alternative == "two-sided":
@@ -75,6 +76,7 @@ def confidence_interval_mean(
 # ---------------------------------------------------------------------------
 # CI for a proportion
 # ---------------------------------------------------------------------------
+
 
 def confidence_interval_proportion(
     successes: int,
@@ -105,19 +107,19 @@ def confidence_interval_proportion(
 
     p_hat = successes / n
     alpha = 1.0 - confidence
-    norm  = Normal(0, 1)
-    z     = norm.ppf(1.0 - alpha / 2.0)
+    norm = Normal(0, 1)
+    z = norm.ppf(1.0 - alpha / 2.0)
 
     if method == "normal":
-        se    = sqrt(p_hat * (1 - p_hat) / n)
+        se = sqrt(p_hat * (1 - p_hat) / n)
         lower = max(0.0, p_hat - z * se)
         upper = min(1.0, p_hat + z * se)
 
     elif method == "wilson":
-        z2   = z * z
+        z2 = z * z
         denom = 1 + z2 / n
         centre = (p_hat + z2 / (2 * n)) / denom
-        half  = (z / denom) * sqrt(p_hat * (1 - p_hat) / n + z2 / (4 * n * n))
+        half = (z / denom) * sqrt(p_hat * (1 - p_hat) / n + z2 / (4 * n * n))
         lower = max(0.0, centre - half)
         upper = min(1.0, centre + half)
 
@@ -130,6 +132,7 @@ def confidence_interval_proportion(
 # ---------------------------------------------------------------------------
 # CI for the difference between two means (Welch)
 # ---------------------------------------------------------------------------
+
 
 def confidence_interval_difference_of_means(
     group1: Sequence[float],
@@ -151,18 +154,16 @@ def confidence_interval_difference_of_means(
     if not 0 < confidence < 1:
         raise ValueError("confidence must be strictly between 0 and 1")
 
-    m1, m2   = mean(g1), mean(g2)
-    s1, s2   = std(g1), std(g2)
-    var1, var2 = s1 ** 2 / n1, s2 ** 2 / n2
-    se    = sqrt(var1 + var2)
-    diff  = m1 - m2
+    m1, m2 = mean(g1), mean(g2)
+    s1, s2 = std(g1), std(g2)
+    var1, var2 = s1**2 / n1, s2**2 / n2
+    se = sqrt(var1 + var2)
+    diff = m1 - m2
 
     # Welch-Satterthwaite df
-    df = (var1 + var2) ** 2 / (
-        var1 ** 2 / (n1 - 1) + var2 ** 2 / (n2 - 1)
-    )
+    df = (var1 + var2) ** 2 / (var1**2 / (n1 - 1) + var2**2 / (n2 - 1))
 
-    t     = StudentT(max(1, int(df)))
+    t = StudentT(max(1, int(df)))
     alpha = 1.0 - confidence
     t_crit = t.ppf(1.0 - alpha / 2.0)
     return diff - t_crit * se, diff + t_crit * se
@@ -171,6 +172,7 @@ def confidence_interval_difference_of_means(
 # ---------------------------------------------------------------------------
 # One-sample z-test  (large-sample)
 # ---------------------------------------------------------------------------
+
 
 def z_test_one_sample(
     data: Sequence[float],
@@ -195,19 +197,19 @@ def z_test_one_sample(
     (z_statistic, p_value)
     """
     data = [float(x) for x in data]
-    n    = len(data)
+    n = len(data)
     if n < 1:
         raise ValueError("Data must be non-empty")
 
     xbar = mean(data)
-    s    = sigma if sigma is not None else std(data)
-    se   = s / sqrt(n)
+    s = sigma if sigma is not None else std(data)
+    se = s / sqrt(n)
 
     if se == 0:
         raise ValueError("Standard error is zero; all values are identical")
 
     z_stat = (xbar - mu0) / se
-    norm   = Normal(0, 1)
+    norm = Normal(0, 1)
 
     if alternative == "two-sided":
         p = 2.0 * (1.0 - norm.cdf(abs(z_stat)))

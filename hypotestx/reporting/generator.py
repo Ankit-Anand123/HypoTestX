@@ -11,10 +11,11 @@ text_report(result, verbose)    -> str   detailed plain-text report
 batch_report(results, title)    -> str   multi-test summary table
 export_csv(results, path)       -> None  write batch results to CSV
 """
-from typing import List, Optional
-from ..core.result import HypoResult
-from .formatters import apa_stat, format_p, format_ci, format_effect
 
+from typing import List, Optional
+
+from ..core.result import HypoResult
+from .formatters import apa_stat, format_p
 
 # ---------------------------------------------------------------------------
 # APA-style paragraph
@@ -22,24 +23,24 @@ from .formatters import apa_stat, format_p, format_ci, format_effect
 
 # Map test names to APA symbol names
 _APA_SYMBOLS = {
-    "one-sample t-test":                  ("t", "d"),
-    "two-sample t-test":                  ("t", "d"),
-    "welch's t-test":                     ("t", "d"),
-    "paired t-test":                      ("t", "d"),
-    "one-way anova":                      ("F", "eta-squared"),
-    "mann-whitney u test":                ("U", "rank-biserial r"),
-    "wilcoxon signed-rank test":          ("W", "r"),
-    "kruskal-wallis test":                ("H", "eta-squared"),
-    "chi-square test of independence":    ("chi2", "phi"),
-    "chi-square goodness-of-fit test":    ("chi2", "w"),
-    "fisher's exact test":                ("OR", None),
-    "pearson correlation":                ("r", "r"),
-    "spearman correlation":               ("rho", "rho"),
-    "point-biserial correlation":         ("r_pb", "r_pb"),
-    "shapiro-wilk normality test":        ("W", None),
-    "levene test for equal variances":    ("F", None),
-    "bartlett test for equal variances":  ("B", None),
-    "jarque-bera normality test":         ("JB", None),
+    "one-sample t-test": ("t", "d"),
+    "two-sample t-test": ("t", "d"),
+    "welch's t-test": ("t", "d"),
+    "paired t-test": ("t", "d"),
+    "one-way anova": ("F", "eta-squared"),
+    "mann-whitney u test": ("U", "rank-biserial r"),
+    "wilcoxon signed-rank test": ("W", "r"),
+    "kruskal-wallis test": ("H", "eta-squared"),
+    "chi-square test of independence": ("chi2", "phi"),
+    "chi-square goodness-of-fit test": ("chi2", "w"),
+    "fisher's exact test": ("OR", None),
+    "pearson correlation": ("r", "r"),
+    "spearman correlation": ("rho", "rho"),
+    "point-biserial correlation": ("r_pb", "r_pb"),
+    "shapiro-wilk normality test": ("W", None),
+    "levene test for equal variances": ("F", None),
+    "bartlett test for equal variances": ("B", None),
+    "jarque-bera normality test": ("JB", None),
 }
 
 
@@ -82,20 +83,22 @@ def apa_report(result: HypoResult) -> str:
         effect_value=result.effect_size if result.effect_size is not None else None,
     )
 
-    sig_word   = "significant" if result.is_significant else "non-significant"
-    direction  = ""
+    sig_word = "significant" if result.is_significant else "non-significant"
+    direction = ""
     if result.interpretation:
         # Grab the first sentence of the interpretation for context
         first_sent = result.interpretation.split(".")[0].strip()
-        direction  = f" {first_sent}."
+        direction = f" {first_sent}."
 
     # CI phrase
     ci_phrase = ""
     if result.confidence_interval is not None:
         ci_level = int((1 - result.alpha) * 100)
-        ci_phrase = (f" A {ci_level}% confidence interval for the effect was "
-                     f"[{result.confidence_interval[0]:.3f}, "
-                     f"{result.confidence_interval[1]:.3f}].")
+        ci_phrase = (
+            f" A {ci_level}% confidence interval for the effect was "
+            f"[{result.confidence_interval[0]:.3f}, "
+            f"{result.confidence_interval[1]:.3f}]."
+        )
 
     report = (
         f"A {result.test_name.lower()} was conducted. "
@@ -107,6 +110,7 @@ def apa_report(result: HypoResult) -> str:
 # ---------------------------------------------------------------------------
 # Detailed plain-text report
 # ---------------------------------------------------------------------------
+
 
 def text_report(result: HypoResult, verbose: bool = True) -> str:
     """
@@ -132,7 +136,7 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
     # --- Hypothesis ---
     lines.append("HYPOTHESIS")
     lines.append("-" * width)
-    lines.append(f"  H0: No effect / no difference")
+    lines.append("  H0: No effect / no difference")
     lines.append(f"  H1: Alternative ({result.alternative})")
     lines.append(f"  Significance level (alpha): {result.alpha}")
     lines.append("")
@@ -149,7 +153,11 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
         else:
             df_str = str(df)
         lines.append(f"  df             : {df_str}")
-    decision = "REJECT H0 (significant)" if result.is_significant else "FAIL TO REJECT H0 (not significant)"
+    decision = (
+        "REJECT H0 (significant)"
+        if result.is_significant
+        else "FAIL TO REJECT H0 (not significant)"
+    )
     lines.append(f"  Decision       : {decision}")
     lines.append("")
 
@@ -157,7 +165,9 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
     if result.effect_size is not None:
         lines.append("EFFECT SIZE")
         lines.append("-" * width)
-        lines.append(f"  {result.effect_size_name}: {result.effect_size:.4f} ({result.effect_magnitude})")
+        lines.append(
+            f"  {result.effect_size_name}: {result.effect_size:.4f} ({result.effect_magnitude})"
+        )
         lines.append("")
 
     # --- Confidence interval ---
@@ -165,7 +175,9 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
         ci_level = int((1 - result.alpha) * 100)
         lines.append(f"CONFIDENCE INTERVAL ({ci_level}%)")
         lines.append("-" * width)
-        lines.append(f"  [{result.confidence_interval[0]:.4f},  {result.confidence_interval[1]:.4f}]")
+        lines.append(
+            f"  [{result.confidence_interval[0]:.4f},  {result.confidence_interval[1]:.4f}]"
+        )
         lines.append("")
 
     if verbose:
@@ -221,6 +233,7 @@ def text_report(result: HypoResult, verbose: bool = True) -> str:
 # Batch report (multiple tests)
 # ---------------------------------------------------------------------------
 
+
 def batch_report(
     results: List[HypoResult],
     title: str = "Hypothesis Testing Results",
@@ -249,11 +262,11 @@ def batch_report(
     lines.append("")
 
     # Header
-    col_test  = 32
-    col_stat  = 10
-    col_df    = 8
-    col_p     = 10
-    col_sig   = 5
+    col_test = 32
+    col_stat = 10
+    col_df = 8
+    col_p = 10
+    col_sig = 5
 
     header = (
         f"{'Test':<{col_test}}"
@@ -306,6 +319,7 @@ def batch_report(
 # CSV export
 # ---------------------------------------------------------------------------
 
+
 def export_csv(
     results: List[HypoResult],
     path: str,
@@ -324,31 +338,42 @@ def export_csv(
         raise ValueError("results list is empty")
 
     fieldnames = [
-        "test_name", "statistic", "p_value", "is_significant", "alpha",
-        "alternative", "degrees_of_freedom", "sample_sizes",
-        "effect_size", "effect_size_name", "effect_magnitude",
-        "ci_lower", "ci_upper",
+        "test_name",
+        "statistic",
+        "p_value",
+        "is_significant",
+        "alpha",
+        "alternative",
+        "degrees_of_freedom",
+        "sample_sizes",
+        "effect_size",
+        "effect_size_name",
+        "effect_magnitude",
+        "ci_lower",
+        "ci_upper",
     ]
 
     rows = []
     for r in results:
         ci_lower = r.confidence_interval[0] if r.confidence_interval else ""
         ci_upper = r.confidence_interval[1] if r.confidence_interval else ""
-        rows.append({
-            "test_name":           r.test_name,
-            "statistic":           round(r.statistic, 6),
-            "p_value":             round(r.p_value, 6),
-            "is_significant":      r.is_significant,
-            "alpha":               r.alpha,
-            "alternative":         r.alternative,
-            "degrees_of_freedom":  r.degrees_of_freedom or "",
-            "sample_sizes":        r.sample_sizes or "",
-            "effect_size":         round(r.effect_size, 6) if r.effect_size is not None else "",
-            "effect_size_name":    r.effect_size_name or "",
-            "effect_magnitude":    r.effect_magnitude if r.effect_size is not None else "",
-            "ci_lower":            round(ci_lower, 6) if ci_lower != "" else "",
-            "ci_upper":            round(ci_upper, 6) if ci_upper != "" else "",
-        })
+        rows.append(
+            {
+                "test_name": r.test_name,
+                "statistic": round(r.statistic, 6),
+                "p_value": round(r.p_value, 6),
+                "is_significant": r.is_significant,
+                "alpha": r.alpha,
+                "alternative": r.alternative,
+                "degrees_of_freedom": r.degrees_of_freedom or "",
+                "sample_sizes": r.sample_sizes or "",
+                "effect_size": (round(r.effect_size, 6) if r.effect_size is not None else ""),
+                "effect_size_name": r.effect_size_name or "",
+                "effect_magnitude": (r.effect_magnitude if r.effect_size is not None else ""),
+                "ci_lower": round(ci_lower, 6) if ci_lower != "" else "",
+                "ci_upper": round(ci_upper, 6) if ci_upper != "" else "",
+            }
+        )
 
     with open(path, "w", newline="", encoding="utf-8") as f:
         # Write header
@@ -360,6 +385,7 @@ def export_csv(
 # ---------------------------------------------------------------------------
 # HTML export
 # ---------------------------------------------------------------------------
+
 
 def export_html(
     result: "HypoResult",
@@ -382,12 +408,14 @@ def export_html(
     str : HTML content
     """
     from ..explore.visualize import generate_report
+
     return generate_report(result, path=path, fmt="html")
 
 
 # ---------------------------------------------------------------------------
 # PDF export
 # ---------------------------------------------------------------------------
+
 
 def export_pdf(
     result: "HypoResult",
@@ -406,10 +434,15 @@ def export_pdf(
     path   : output file path (e.g. ``"report.pdf"``).
     """
     from ..explore.visualize import generate_report
+
     generate_report(result, path=path, fmt="pdf")
 
 
 __all__ = [
-    "apa_report", "text_report", "batch_report",
-    "export_csv", "export_html", "export_pdf",
+    "apa_report",
+    "text_report",
+    "batch_report",
+    "export_csv",
+    "export_html",
+    "export_pdf",
 ]

@@ -11,20 +11,22 @@ hypotestx analyze data.csv "Compare regions" --backend ollama --model phi4 --ver
 hypotestx version
 hypotestx backends
 """
+
 from __future__ import annotations
 
 import argparse
-import sys
 import os
-
+import sys
 
 # --------------------------------------------------------------------------- #
 # Helpers                                                                      #
 # --------------------------------------------------------------------------- #
 
+
 def _load_csv(path: str):
     """Load a CSV file into a dict-of-lists (no pandas required)."""
     import csv
+
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         rows = list(reader)
@@ -46,6 +48,7 @@ def _try_pandas(path: str):
     """Try to load with pandas for richer dtype inference; fall back to CSV."""
     try:
         import pandas as pd  # type: ignore
+
         return pd.read_csv(path)
     except ImportError:
         return _load_csv(path)
@@ -54,6 +57,7 @@ def _try_pandas(path: str):
 # --------------------------------------------------------------------------- #
 # Sub-commands                                                                 #
 # --------------------------------------------------------------------------- #
+
 
 def cmd_analyze(args: argparse.Namespace) -> None:
     from hypotestx.core.engine import analyze
@@ -89,11 +93,13 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         print(result.summary())
     elif args.format == "json":
         import json
+
         d = result.to_dict() if hasattr(result, "to_dict") else vars(result)
         print(json.dumps(d, indent=2, default=str))
     elif args.format == "apa":
         try:
             from hypotestx.reporting.generator import apa_report
+
             print(apa_report(result))
         except Exception:
             print(result.summary())
@@ -103,6 +109,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
 def cmd_version(_args) -> None:
     import hypotestx
+
     print(f"HypoTestX {hypotestx.__version__}")
 
 
@@ -125,6 +132,7 @@ def cmd_backends(_args) -> None:
 # --------------------------------------------------------------------------- #
 # Argument parser                                                              #
 # --------------------------------------------------------------------------- #
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -153,21 +161,24 @@ Examples:
     an.add_argument("file", help="Path to CSV data file")
     an.add_argument("question", help="Plain-English hypothesis question")
     an.add_argument(
-        "--backend", "-b",
+        "--backend",
+        "-b",
         default=None,
         metavar="BACKEND",
         help="LLM backend to use: none/fallback, ollama, gemini, groq, openai, "
-             "together, mistral, huggingface (default: fallback)",
+        "together, mistral, huggingface (default: fallback)",
     )
     an.add_argument(
-        "--api-key", "-k",
+        "--api-key",
+        "-k",
         default=None,
         dest="api_key",
         metavar="KEY",
         help="API key for cloud LLM backends",
     )
     an.add_argument(
-        "--model", "-m",
+        "--model",
+        "-m",
         default=None,
         metavar="MODEL",
         help="Model name override (e.g. phi4, gemini-1.5-pro, gpt-4o-mini)",
@@ -179,20 +190,23 @@ Examples:
         help="Custom base URL for Ollama or OpenAI-compatible servers",
     )
     an.add_argument(
-        "--alpha", "-a",
+        "--alpha",
+        "-a",
         type=float,
         default=0.05,
         metavar="ALPHA",
         help="Significance level (default: 0.05)",
     )
     an.add_argument(
-        "--format", "-f",
+        "--format",
+        "-f",
         choices=["summary", "json", "apa"],
         default="summary",
         help="Output format: summary (default), json, or apa",
     )
     an.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Show routing info (chosen test, LLM reasoning)",
     )
@@ -212,6 +226,7 @@ Examples:
 # --------------------------------------------------------------------------- #
 # Entry point                                                                  #
 # --------------------------------------------------------------------------- #
+
 
 def main(argv=None) -> None:
     parser = build_parser()

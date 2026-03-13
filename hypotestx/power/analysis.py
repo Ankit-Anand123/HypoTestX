@@ -9,14 +9,16 @@ power_anova(effect_size, n_per_group, k, alpha)
 power_chi_square(effect_size, n, df, alpha)
 power_correlation(r, n, alpha, alternative)
 """
-from typing import Optional
-from ..math.basic import sqrt, abs_value, ln
-from ..math.distributions import Normal
 
+from typing import Optional
+
+from ..math.basic import abs_value, ln, sqrt
+from ..math.distributions import Normal
 
 # ---------------------------------------------------------------------------
 # Internal: tail probability helpers
 # ---------------------------------------------------------------------------
+
 
 def _power_from_ncp(ncp: float, alpha: float, alternative: str) -> float:
     """
@@ -26,10 +28,10 @@ def _power_from_ncp(ncp: float, alpha: float, alternative: str) -> float:
     z = Normal(0, 1)
     if alternative == "two-sided":
         z_crit = z.ppf(1.0 - alpha / 2.0)
-        power  = 1.0 - z.cdf(z_crit - ncp) + z.cdf(-z_crit - ncp)
+        power = 1.0 - z.cdf(z_crit - ncp) + z.cdf(-z_crit - ncp)
     elif alternative in ("greater", "less"):
         z_crit = z.ppf(1.0 - alpha)
-        power  = 1.0 - z.cdf(z_crit - abs_value(ncp))
+        power = 1.0 - z.cdf(z_crit - abs_value(ncp))
     else:
         raise ValueError("alternative must be 'two-sided', 'greater', or 'less'")
     return min(max(power, 0.0), 1.0)
@@ -38,6 +40,7 @@ def _power_from_ncp(ncp: float, alpha: float, alternative: str) -> float:
 # ---------------------------------------------------------------------------
 # One-sample t-test power
 # ---------------------------------------------------------------------------
+
 
 def power_ttest_one_sample(
     effect_size: float,
@@ -74,6 +77,7 @@ def power_ttest_one_sample(
 # Two-sample t-test power
 # ---------------------------------------------------------------------------
 
+
 def power_ttest_two_sample(
     effect_size: float,
     n1: int,
@@ -104,14 +108,15 @@ def power_ttest_two_sample(
         n2 = n1
     if n1 < 2 or n2 < 2:
         raise ValueError("Both group sizes must be at least 2")
-    n_harm = (n1 * n2) / (n1 + n2)   # harmonic-mean-like term
-    ncp    = abs_value(effect_size) * sqrt(n_harm)
+    n_harm = (n1 * n2) / (n1 + n2)  # harmonic-mean-like term
+    ncp = abs_value(effect_size) * sqrt(n_harm)
     return _power_from_ncp(ncp, alpha, alternative)
 
 
 # ---------------------------------------------------------------------------
 # Paired t-test power
 # ---------------------------------------------------------------------------
+
 
 def power_ttest_paired(
     effect_size: float,
@@ -131,6 +136,7 @@ def power_ttest_paired(
 # ---------------------------------------------------------------------------
 # One-way ANOVA power
 # ---------------------------------------------------------------------------
+
 
 def power_anova(
     effect_size: float,
@@ -163,29 +169,32 @@ def power_anova(
     if n_per_group < 2:
         raise ValueError("n_per_group must be at least 2")
 
-    N   = k * n_per_group
-    ncp = (effect_size ** 2) * N          # lambda = f^2 * N
+    N = k * n_per_group
+    ncp = (effect_size**2) * N  # lambda = f^2 * N
 
     from ..math.distributions import ChiSquare
+
     # Approximate: compare non-central chi^2 tail to central chi^2 critical value
     df_between = k - 1
-    chi2_crit  = ChiSquare(df_between).ppf(1.0 - alpha)
+    chi2_crit = ChiSquare(df_between).ppf(1.0 - alpha)
 
     # Power = P(chi^2(df, ncp) > chi2_crit)
     # Use shifted normal approximation: chi^2(df,ncp) ~ N(df+ncp, 2*(df+2*ncp))
     from ..math.basic import sqrt as _sqrt
+
     mean_nc = df_between + ncp
-    std_nc  = _sqrt(2 * (df_between + 2 * ncp))
+    std_nc = _sqrt(2 * (df_between + 2 * ncp))
     if std_nc == 0:
         return 0.0
     z_power = (chi2_crit - mean_nc) / std_nc
-    power   = 1.0 - Normal(0, 1).cdf(z_power)
+    power = 1.0 - Normal(0, 1).cdf(z_power)
     return min(max(power, 0.0), 1.0)
 
 
 # ---------------------------------------------------------------------------
 # Chi-square test power
 # ---------------------------------------------------------------------------
+
 
 def power_chi_square(
     effect_size: float,
@@ -209,21 +218,23 @@ def power_chi_square(
     float : estimated power (0..1)
     """
     from ..math.distributions import ChiSquare
-    ncp       = (effect_size ** 2) * n
+
+    ncp = (effect_size**2) * n
     chi2_crit = ChiSquare(df).ppf(1.0 - alpha)
 
     mean_nc = df + ncp
-    std_nc  = sqrt(2.0 * (df + 2.0 * ncp))
+    std_nc = sqrt(2.0 * (df + 2.0 * ncp))
     if std_nc == 0:
         return 0.0
     z_power = (chi2_crit - mean_nc) / std_nc
-    power   = 1.0 - Normal(0, 1).cdf(z_power)
+    power = 1.0 - Normal(0, 1).cdf(z_power)
     return min(max(power, 0.0), 1.0)
 
 
 # ---------------------------------------------------------------------------
 # Correlation power
 # ---------------------------------------------------------------------------
+
 
 def power_correlation(
     r: float,
@@ -258,6 +269,7 @@ def power_correlation(
 # Summary
 # ---------------------------------------------------------------------------
 
+
 def power_summary(
     test_type: str,
     effect_size: float,
@@ -277,19 +289,19 @@ def power_summary(
     **kwargs    : additional arguments forwarded to the power function
     """
     dispatch = {
-        "one_sample_t":  power_ttest_one_sample,
-        "paired_t":      power_ttest_paired,
-        "two_sample_t":  power_ttest_two_sample,
-        "anova":         power_anova,
-        "chi_square":    power_chi_square,
-        "correlation":   power_correlation,
+        "one_sample_t": power_ttest_one_sample,
+        "paired_t": power_ttest_paired,
+        "two_sample_t": power_ttest_two_sample,
+        "anova": power_anova,
+        "chi_square": power_chi_square,
+        "correlation": power_correlation,
     }
     if test_type not in dispatch:
         raise ValueError(f"test_type must be one of: {list(dispatch.keys())}")
     if n is None:
         raise ValueError("n is required for power_summary")
 
-    func  = dispatch[test_type]
+    func = dispatch[test_type]
     power = func(effect_size, n, alpha=alpha, **kwargs)
 
     lines = [

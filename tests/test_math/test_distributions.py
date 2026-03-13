@@ -1,15 +1,17 @@
 """
 Tests for hypotestx.math.distributions — Normal, StudentT, ChiSquare, F.
 """
+
 import math
+
 import pytest
 
-from hypotestx.math.distributions import Normal, StudentT, ChiSquare, F
-
+from hypotestx.math.distributions import ChiSquare, F, Normal, StudentT
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def approx(a, b, tol=1e-4):
     return abs(a - b) < tol
@@ -18,6 +20,7 @@ def approx(a, b, tol=1e-4):
 # ---------------------------------------------------------------------------
 # Normal distribution
 # ---------------------------------------------------------------------------
+
 
 class TestNormal:
     def test_pdf_at_mean(self):
@@ -72,6 +75,7 @@ class TestNormal:
 # StudentT distribution
 # ---------------------------------------------------------------------------
 
+
 class TestStudentT:
     def test_pdf_symmetric(self):
         t = StudentT(5)
@@ -112,6 +116,7 @@ class TestStudentT:
 # ChiSquare distribution
 # ---------------------------------------------------------------------------
 
+
 class TestChiSquare:
     def test_pdf_positive_only(self):
         c = ChiSquare(3)
@@ -144,6 +149,7 @@ class TestChiSquare:
 # ---------------------------------------------------------------------------
 # F distribution
 # ---------------------------------------------------------------------------
+
 
 class TestFDist:
     def test_pdf_positive(self):

@@ -8,9 +8,10 @@ Provides string templates and rendering for:
 
 All templates are pure Python — no Jinja2 or other dependencies.
 """
-from __future__ import annotations
-from typing import Any, Dict, Optional
 
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # APA template
@@ -103,14 +104,13 @@ Conclusion  : {conclusion}
 Effect size : {effect_size_str}
 """
 
-ONE_LINE_TEMPLATE = (
-    "{test_name}: stat={statistic:.4f}, p={p_value:.4f} -> {conclusion}"
-)
+ONE_LINE_TEMPLATE = "{test_name}: stat={statistic:.4f}, p={p_value:.4f} -> {conclusion}"
 
 
 # ---------------------------------------------------------------------------
 # Rendering helpers
 # ---------------------------------------------------------------------------
+
 
 def _significance_word(is_significant: bool) -> str:
     return "statistically significant" if is_significant else "not statistically significant"
@@ -152,12 +152,14 @@ def render_apa(
         return template.format_map(ctx)
     except (KeyError, ValueError):
         # Fall back to generic if template keys don't match
-        return APA_TEMPLATES["generic"].format_map({
-            "test_name":  ctx.get("test_name", test_key),
-            "significance": ctx.get("significance", ""),
-            "statistic":  ctx.get("statistic", float("nan")),
-            "p_value":    ctx.get("p_value", float("nan")),
-        })
+        return APA_TEMPLATES["generic"].format_map(
+            {
+                "test_name": ctx.get("test_name", test_key),
+                "significance": ctx.get("significance", ""),
+                "statistic": ctx.get("statistic", float("nan")),
+                "p_value": ctx.get("p_value", float("nan")),
+            }
+        )
 
 
 def render_plain(context: Dict[str, Any]) -> str:
@@ -170,8 +172,7 @@ def render_plain(context: Dict[str, Any]) -> str:
               is_significant, effect_size
     """
     ctx = dict(context)
-    ctx.setdefault("conclusion",
-                   "Reject H0" if ctx.get("is_significant") else "Fail to reject H0")
+    ctx.setdefault("conclusion", "Reject H0" if ctx.get("is_significant") else "Fail to reject H0")
     ctx.setdefault("effect_size_str", _effect_size_str(ctx.get("effect_size")))
     return PLAIN_TEMPLATE.format_map(ctx)
 
@@ -179,8 +180,7 @@ def render_plain(context: Dict[str, Any]) -> str:
 def render_one_line(context: Dict[str, Any]) -> str:
     """Render a compact one-line summary."""
     ctx = dict(context)
-    ctx.setdefault("conclusion",
-                   "Reject H0" if ctx.get("is_significant") else "Fail to reject H0")
+    ctx.setdefault("conclusion", "Reject H0" if ctx.get("is_significant") else "Fail to reject H0")
     return ONE_LINE_TEMPLATE.format_map(ctx)
 
 

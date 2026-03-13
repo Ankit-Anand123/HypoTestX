@@ -1,23 +1,22 @@
 """
 Unit tests for hypotestx.tests.nonparametric
 """
-import sys
+
 import os
+import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from hypotestx.tests.nonparametric import (
-    mann_whitney_u, wilcoxon_signed_rank, kruskal_wallis,
-)
 from hypotestx.core.exceptions import InsufficientDataError
 from hypotestx.core.result import HypoResult
+from hypotestx.tests.nonparametric import kruskal_wallis, mann_whitney_u, wilcoxon_signed_rank
 
 
 class TestMannWhitneyU(unittest.TestCase):
 
     def setUp(self):
-        self.low  = [1, 2, 3, 4, 5]
+        self.low = [1, 2, 3, 4, 5]
         self.high = [6, 7, 8, 9, 10]
 
     def test_returns_hyporesult(self):
@@ -58,7 +57,7 @@ class TestWilcoxonSignedRank(unittest.TestCase):
     def setUp(self):
         # After values consistently higher
         self.before = [4, 5, 6, 7, 8, 5, 6, 7, 5, 6]
-        self.after  = [7, 8, 9, 10, 11, 8, 9, 10, 8, 9]
+        self.after = [7, 8, 9, 10, 11, 8, 9, 10, 8, 9]
 
     def test_returns_hyporesult(self):
         r = wilcoxon_signed_rank(self.before, self.after)
@@ -70,7 +69,7 @@ class TestWilcoxonSignedRank(unittest.TestCase):
 
     def test_one_sample(self):
         # Test one-sample version (mu=0)
-        diffs = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]   # all positive
+        diffs = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]  # all positive
         r = wilcoxon_signed_rank(diffs, mu=0)
         self.assertTrue(r.is_significant)
 
@@ -125,5 +124,5 @@ class TestKruskalWallis(unittest.TestCase):
         self.assertLessEqual(r.effect_size, 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

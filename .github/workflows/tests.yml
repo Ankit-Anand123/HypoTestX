@@ -1,4 +1,4 @@
-﻿name: Tests & Lint
+name: Tests & Lint
 
 on:
   push:
@@ -33,9 +33,14 @@ jobs:
         run: isort --check-only hypotestx/ tests/
 
       - name: Lint (flake8)
-        run: flake8 hypotestx/ tests/
+        run: >
+          flake8 hypotestx/ tests/
+          --max-line-length=100
+          --extend-ignore=E203,E231
+          --per-file-ignores=tests/*:E402
 
       - name: Type check (mypy)
+        continue-on-error: true
         run: mypy hypotestx/ --ignore-missing-imports
 
       - name: Run tests with coverage

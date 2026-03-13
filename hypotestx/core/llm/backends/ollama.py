@@ -16,20 +16,20 @@ Recommended free models (small but capable):
     gemma2       ~5 GB  very accurate
     phi4         ~9 GB  best reasoning
 """
+
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Dict, List, Optional
 
 from ..base import LLMBackend
 
-
-_DEFAULT_MODEL   = "llama3.2"
-_DEFAULT_HOST    = "http://localhost:11434"
-_CHAT_ENDPOINT   = "/api/chat"
-_TAGS_ENDPOINT   = "/api/tags"
+_DEFAULT_MODEL = "llama3.2"
+_DEFAULT_HOST = "http://localhost:11434"
+_CHAT_ENDPOINT = "/api/chat"
+_TAGS_ENDPOINT = "/api/tags"
 
 
 class OllamaBackend(LLMBackend):
@@ -52,8 +52,8 @@ class OllamaBackend(LLMBackend):
         timeout: int = 120,
         options: Optional[Dict] = None,
     ):
-        self.model   = model
-        self.host    = host.rstrip("/")
+        self.model = model
+        self.host = host.rstrip("/")
         self.timeout = timeout
         self.options = options or {"temperature": 0}
 
@@ -65,12 +65,14 @@ class OllamaBackend(LLMBackend):
         """Send a chat request to the local Ollama server."""
         self._check_server()
 
-        payload = json.dumps({
-            "model":    self.model,
-            "messages": messages,
-            "stream":   False,
-            "options":  self.options,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": self.model,
+                "messages": messages,
+                "stream": False,
+                "options": self.options,
+            }
+        ).encode("utf-8")
 
         url = self.host + _CHAT_ENDPOINT
         req = urllib.request.Request(
@@ -84,8 +86,7 @@ class OllamaBackend(LLMBackend):
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as exc:
             raise RuntimeError(
-                f"[Ollama] Could not reach {url}. "
-                "Make sure Ollama is running: `ollama serve`"
+                f"[Ollama] Could not reach {url}. " "Make sure Ollama is running: `ollama serve`"
             ) from exc
 
         return data["message"]["content"]
@@ -124,7 +125,7 @@ class OllamaBackend(LLMBackend):
         """
         available = self.available_models()
         if not available:
-            return self.model   # let the request fail with a clear error
+            return self.model  # let the request fail with a clear error
         preference = ["phi4", "gemma2", "mistral", "llama3.2"]
         for pref in preference:
             for m in available:

@@ -1,0 +1,28 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "hypotestx/**"
+      - ".readthedocs.yaml"
+
+jobs:
+  build:
+    name: Build Sphinx docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and doc dependencies
+        run: pip install -e ".[docs]"
+
+      - name: Build docs (warnings = errors)
+        run: sphinx-build -b html docs/source docs/_build/html -W --keep-going

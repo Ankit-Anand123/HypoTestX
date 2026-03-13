@@ -2,17 +2,15 @@
 Tests for hypotestx.math.linear_algebra.
 All matrix functions expect Matrix objects, returning Matrix objects.
 """
-import math
-import pytest
 
 from hypotestx.math.linear_algebra import (
     Matrix,
-    vector_dot,
-    vector_norm,
+    matrix_inverse,
     matrix_multiply,
     matrix_transpose,
-    matrix_inverse,
     qr_decomposition,
+    vector_dot,
+    vector_norm,
 )
 
 
@@ -55,9 +53,9 @@ class TestVectorNorm:
 
 class TestMatrixMultiply:
     def test_identity(self):
-        I = Matrix([[1.0, 0.0], [0.0, 1.0]])
+        identity_mat = Matrix([[1.0, 0.0], [0.0, 1.0]])
         A = Matrix([[2.0, 3.0], [4.0, 5.0]])
-        result = matrix_multiply(I, A)
+        result = matrix_multiply(identity_mat, A)
         assert mat_approx(result, A)
 
     def test_known(self):
@@ -96,9 +94,9 @@ class TestMatrixTranspose:
 
 class TestMatrixInverse:
     def test_identity_inverse(self):
-        I = Matrix([[1.0, 0.0], [0.0, 1.0]])
-        Iinv = matrix_inverse(I)
-        assert mat_approx(Iinv, I)
+        identity_mat = Matrix([[1.0, 0.0], [0.0, 1.0]])
+        Iinv = matrix_inverse(identity_mat)
+        assert mat_approx(Iinv, identity_mat)
 
     def test_known_2x2(self):
         A = Matrix([[4.0, 7.0], [2.0, 6.0]])
@@ -110,9 +108,7 @@ class TestMatrixInverse:
         assert approx(prod.data[1][1], 1.0, tol=1e-8)
 
     def test_3x3(self):
-        A = Matrix([[1.0, 2.0, 0.0],
-                    [0.0, 1.0, 3.0],
-                    [0.0, 0.0, 1.0]])
+        A = Matrix([[1.0, 2.0, 0.0], [0.0, 1.0, 3.0], [0.0, 0.0, 1.0]])
         Ainv = matrix_inverse(A)
         prod = matrix_multiply(A, Ainv)
         for i in range(3):

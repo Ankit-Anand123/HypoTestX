@@ -4,6 +4,7 @@ Prompt templates for HypoTestX's LLM routing layer.
 All prompts are plain strings so they are easy to read, audit, and override.
 Nothing here calls any LLM — that is the backend's job.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -27,7 +28,7 @@ which statistical test to run and which columns to use.
 | test key              | When to use |
 |-----------------------|-------------|
 | one_sample_ttest      | One group, test if mean equals a number (e.g. "Is the mean height 170?") |
-| two_sample_ttest      | Two independent groups, compare means (e.g. "Do males earn more than females?") |
+| two_sample_ttest      | Two independent groups, compare means (e.g. "Do males earn more than females?") |  # noqa: E501
 | paired_ttest          | Same subjects measured twice, compare before/after means |
 | anova                 | Three or more independent groups, compare means |
 | mann_whitney          | Two groups, non-parametric (use when data is non-normal or ordinal) |
@@ -88,6 +89,7 @@ Rules:
 # Schema builder
 # ---------------------------------------------------------------------------
 
+
 def build_schema(df) -> "SchemaInfo":
     """
     Build a ``SchemaInfo`` snapshot from a DataFrame (pandas or polars).
@@ -108,8 +110,8 @@ def build_schema(df) -> "SchemaInfo":
             if non_null and isinstance(non_null[0], (int, float)):
                 info.dtypes[col] = "float64"
                 info.numerics[col] = {
-                    "min":  float(min(non_null)),
-                    "max":  float(max(non_null)),
+                    "min": float(min(non_null)),
+                    "max": float(max(non_null)),
                     "mean": float(sum(non_null) / len(non_null)),
                 }
             else:
@@ -134,8 +136,8 @@ def build_schema(df) -> "SchemaInfo":
                 series = df[col].dropna()
                 if len(series) > 0:
                     info.numerics[col] = {
-                        "min":  float(series.min()),
-                        "max":  float(series.max()),
+                        "min": float(series.min()),
+                        "max": float(series.max()),
                         "mean": float(series.mean()),
                     }
     except AttributeError:
@@ -152,8 +154,8 @@ def build_schema(df) -> "SchemaInfo":
                 elif "Int" in dtype_str or "Float" in dtype_str:
                     if len(col_series) > 0:
                         info.numerics[col] = {
-                            "min":  float(col_series.min()),
-                            "max":  float(col_series.max()),
+                            "min": float(col_series.min()),
+                            "max": float(col_series.max()),
                             "mean": float(col_series.mean()),
                         }
         except Exception:
@@ -215,10 +217,11 @@ def build_user_prompt(
 # (e.g. completion-only models)
 # ---------------------------------------------------------------------------
 
+
 def build_completion_prompt(question: str, schema: "SchemaInfo") -> str:
     """
     Combines system + user into a single string for completion-style APIs.
     """
     system = build_system_prompt()
-    user   = build_user_prompt(question, schema)
+    user = build_user_prompt(question, schema)
     return f"{system}\n\n---\n\n{user}\n\nJSON answer:\n"

@@ -5,6 +5,7 @@ Used automatically when no LLM backend is specified.
 Handles the most common question patterns with reasonable accuracy.
 For production use or complex questions, switch to a real LLM backend.
 """
+
 from __future__ import annotations
 
 import re
@@ -18,43 +19,59 @@ from ..base import LLMBackend, RoutingResult, SchemaInfo
 
 _TESTS_BY_KEYWORD = [
     # (regex, test_key, default_alternative)   — searched in order
-
     # Correlations
-    ("correlat|related to|linear relationship|predict.*from|association.*numeric"
-     "|scatter",                                  "pearson",          "two-sided"),
-    ("rank.*corr|spearman|monotone|ordinal corr", "spearman",         "two-sided"),
-
+    (
+        "correlat|related to|linear relationship|predict.*from|association.*numeric" "|scatter",
+        "pearson",
+        "two-sided",
+    ),
+    ("rank.*corr|spearman|monotone|ordinal corr", "spearman", "two-sided"),
     # Categorical association
-    ("association|independent|chi.square|chi2|contingency|"
-     "relationship.*categor|categor.*relationship",  "chi_square",    "two-sided"),
-    ("fisher",                                        "fisher",        "two-sided"),
-
+    (
+        "association|independent|chi.square|chi2|contingency|"
+        "relationship.*categor|categor.*relationship",
+        "chi_square",
+        "two-sided",
+    ),
+    ("fisher", "fisher", "two-sided"),
     # One-sample
-    (r"mean.*equal|equal.*mean|mean.*differ.*\d|differ.*\d.*mean|"
-     r"average.*\d|\d.*average|test.*mean|mean.*test|"
-     "is.*mean|population mean",                      "one_sample_ttest", "two-sided"),
-
+    (
+        r"mean.*equal|equal.*mean|mean.*differ.*\d|differ.*\d.*mean|"
+        r"average.*\d|\d.*average|test.*mean|mean.*test|"
+        "is.*mean|population mean",
+        "one_sample_ttest",
+        "two-sided",
+    ),
     # Paired
-    ("before.*after|pre.*post|paired|repeated.*measure|"
-     "within.*subject|change over time|same.*subject",  "paired_ttest", "two-sided"),
-
+    (
+        "before.*after|pre.*post|paired|repeated.*measure|"
+        "within.*subject|change over time|same.*subject",
+        "paired_ttest",
+        "two-sided",
+    ),
     # ANOVA / multi-group
-    ("anova|more than two|three.*group|multiple.*group|"
-     "several.*group|across.*group|among.*group",        "anova",      "two-sided"),
-
+    (
+        "anova|more than two|three.*group|multiple.*group|"
+        "several.*group|across.*group|among.*group",
+        "anova",
+        "two-sided",
+    ),
     # Kruskal-Wallis
-    ("kruskal|non.param.*group|group.*non.param",  "kruskal_wallis", "two-sided"),
-
+    ("kruskal|non.param.*group|group.*non.param", "kruskal_wallis", "two-sided"),
     # Two-sample
-    ("compar.*mean|mean.*compar|differ.*group|group.*differ|"
-     "between.*group|higher.*than|lower.*than|more.*than.*less.*than|"
-     "male.*female|female.*male|group.*a.*group.*b|"
-     "two.*group|independen.*sample",               "two_sample_ttest", "two-sided"),
+    (
+        "compar.*mean|mean.*compar|differ.*group|group.*differ|"
+        "between.*group|higher.*than|lower.*than|more.*than.*less.*than|"
+        "male.*female|female.*male|group.*a.*group.*b|"
+        "two.*group|independen.*sample",
+        "two_sample_ttest",
+        "two-sided",
+    ),
 ]
 
 _DIRECTION_KEYWORDS = {
     "greater": r"\bhigher\b|\bmore\b|\bgreater\b|\blarger\b|\bexceed\b|\babove\b",
-    "less":    r"\blower\b|\bless\b|\bsmaller\b|\bbelow\b|\bunder\b|\bfewer\b",
+    "less": r"\blower\b|\bless\b|\bsmaller\b|\bbelow\b|\bunder\b|\bfewer\b",
 }
 
 _TWO_SAMPLE_KEYS = {"two_sample_ttest", "mann_whitney", "anova", "kruskal_wallis"}
@@ -62,6 +79,7 @@ _TWO_SAMPLE_KEYS = {"two_sample_ttest", "mann_whitney", "anova", "kruskal_wallis
 # ---------------------------------------------------------------------------
 # Backend
 # ---------------------------------------------------------------------------
+
 
 class FallbackBackend(LLMBackend):
     """
@@ -90,13 +108,14 @@ class FallbackBackend(LLMBackend):
     ) -> RoutingResult:
         """Bypass LLM and route via regex rules."""
         import warnings
+
         if warn_fallback:
             warnings.warn(
                 f'\n[HypoTestX] Using built-in regex fallback to route: "{question}"\n'
-                '  Confidence is limited (~0.6). For better accuracy use a real LLM backend:\n'
+                "  Confidence is limited (~0.6). For better accuracy use a real LLM backend:\n"
                 '    hx.analyze(df, question, backend="gemini", api_key="...")\n'
                 '    hx.analyze(df, question, backend="ollama")  # free, offline\n'
-                '  Suppress this with: warn_fallback=False',
+                "  Suppress this with: warn_fallback=False",
                 UserWarning,
                 stacklevel=4,
             )
@@ -106,7 +125,7 @@ class FallbackBackend(LLMBackend):
         # ── Detect test type ────────────────────────────────────────────
         for pattern, test, default_alt in _TESTS_BY_KEYWORD:
             if re.search(pattern, lower):
-                r.test        = test
+                r.test = test
                 r.alternative = default_alt
                 break
 
@@ -184,6 +203,7 @@ class FallbackBackend(LLMBackend):
 # Column matching helpers
 # ---------------------------------------------------------------------------
 
+
 def _match_columns(
     question_lower: str,
     schema: SchemaInfo,
@@ -193,7 +213,7 @@ def _match_columns(
     by finding schema column names that appear in the question text.
     """
     mentioned_numeric = []
-    mentioned_categ   = []
+    mentioned_categ = []
 
     for col in schema.columns:
         col_l = col.lower().replace("_", " ")
@@ -204,7 +224,7 @@ def _match_columns(
                 mentioned_categ.append(col)
 
     value_col = mentioned_numeric[0] if mentioned_numeric else None
-    group_col = mentioned_categ[0]   if mentioned_categ   else None
+    group_col = mentioned_categ[0] if mentioned_categ else None
 
     # If nothing matched explicitly, use first numeric / first categorical
     if value_col is None and schema.numerics:

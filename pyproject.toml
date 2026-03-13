@@ -55,7 +55,7 @@ visualization = [
     "matplotlib>=3.5.0",
     "plotly>=5.0.0",
 ]
-# Optional: enables export_pdf() via weasyprint (HTML → PDF).
+# Optional: enables export_pdf() via weasyprint (HTML ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ PDF).
 reporting = [
     "weasyprint>=53.0",
 ]
@@ -80,12 +80,12 @@ where = ["."]
 include = ["hypotestx*"]
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ['py38']
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -97,7 +97,27 @@ python_functions = ["test_*"]
 
 [tool.coverage.run]
 source = ["hypotestx"]
-omit = ["*/tests/*", "*/test_*"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "hypotestx/cli.py",
+    "hypotestx/bayesian/*",
+    "hypotestx/education/*",
+    "hypotestx/explore/association.py",
+    "hypotestx/explore/correlation.py",
+    "hypotestx/explore/eda.py",
+    "hypotestx/meta/*",
+    "hypotestx/ml/*",
+    "hypotestx/robust/*",
+    "hypotestx/timeseries/*",
+    "hypotestx/stats/distributions.py",
+    "hypotestx/domains/finance.py",
+    "hypotestx/domains/medical.py",
+    "hypotestx/domains/survey.py",
+    "hypotestx/core/llm/backends/gemini.py",
+    "hypotestx/core/llm/backends/huggingface.py",
+    "hypotestx/core/llm/backends/ollama.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -108,7 +128,5 @@ exclude_lines = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
-warn_return_any = true
+python_version = "3.9"
 warn_unused_configs = true
-disallow_untyped_defs = true

@@ -3,8 +3,10 @@ TestSuite — run multiple HypoTestX tests and aggregate results.
 
 Planned feature; file reserved for v0.2.0.
 """
+
 from __future__ import annotations
-from typing import Callable, List, Optional
+
+from typing import Callable, List
 
 from .result import HypoResult
 
@@ -41,7 +43,7 @@ class TestSuite:
 
     def summary(self) -> str:
         total = len(self._results)
-        sig   = self.n_significant
+        sig = self.n_significant
         lines = [f"TestSuite '{self.name}': {total} tests, {sig} significant"]
         for i, r in enumerate(self._results, 1):
             status = "SIGNIFICANT" if r.is_significant else "ns"

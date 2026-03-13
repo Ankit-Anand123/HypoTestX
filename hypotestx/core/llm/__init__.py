@@ -9,38 +9,39 @@ get_backend(spec, **kwargs) -> LLMBackend
 build_schema(df) -> SchemaInfo
     Snapshot a DataFrame into a SchemaInfo for the prompt.
 """
+
 from __future__ import annotations
 
 from typing import Any
 
-from .base import LLMBackend, RoutingResult, SchemaInfo, CallableBackend
-from .prompts import build_schema, build_system_prompt, build_user_prompt
 from .backends import (
-    OllamaBackend,
-    OpenAICompatBackend,
+    FallbackBackend,
     GeminiBackend,
     HuggingFaceBackend,
-    FallbackBackend,
+    OllamaBackend,
+    OpenAICompatBackend,
 )
+from .base import CallableBackend, LLMBackend, RoutingResult, SchemaInfo
+from .prompts import build_schema, build_system_prompt, build_user_prompt
 
 # ---------------------------------------------------------------------------
 # Backend factory
 # ---------------------------------------------------------------------------
 
 _STRING_MAP = {
-    "ollama":       OllamaBackend,
-    "openai":       lambda **kw: OpenAICompatBackend(provider="openai", **kw),
-    "groq":         lambda **kw: OpenAICompatBackend(provider="groq",   **kw),
-    "together":     lambda **kw: OpenAICompatBackend(provider="together", **kw),
-    "perplexity":   lambda **kw: OpenAICompatBackend(provider="perplexity", **kw),
-    "mistral":      lambda **kw: OpenAICompatBackend(provider="mistral",  **kw),
-    "azure":        lambda **kw: OpenAICompatBackend(provider="azure",   **kw),
-    "gemini":       GeminiBackend,
-    "huggingface":  HuggingFaceBackend,
-    "hf":           HuggingFaceBackend,
-    "fallback":     FallbackBackend,
-    "regex":        FallbackBackend,
-    "none":         FallbackBackend,
+    "ollama": OllamaBackend,
+    "openai": lambda **kw: OpenAICompatBackend(provider="openai", **kw),
+    "groq": lambda **kw: OpenAICompatBackend(provider="groq", **kw),
+    "together": lambda **kw: OpenAICompatBackend(provider="together", **kw),
+    "perplexity": lambda **kw: OpenAICompatBackend(provider="perplexity", **kw),
+    "mistral": lambda **kw: OpenAICompatBackend(provider="mistral", **kw),
+    "azure": lambda **kw: OpenAICompatBackend(provider="azure", **kw),
+    "gemini": GeminiBackend,
+    "huggingface": HuggingFaceBackend,
+    "hf": HuggingFaceBackend,
+    "fallback": FallbackBackend,
+    "regex": FallbackBackend,
+    "none": FallbackBackend,
 }
 
 
@@ -66,23 +67,52 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     **kwargs
         Forwarded verbatim to the backend constructor.  Supported kwargs:
 
-        +-----------------+--------------------------------------+------------------------+
-        | kwarg           | backends                             | default                |
-        +=================+======================================+========================+
-        | ``api_key``     | gemini, openai, groq, together, …   | —                      |
-        | ``model``       | all                                  | provider default       |
-        | ``timeout``     | all                                  | 60 s                   |
-        | ``temperature`` | gemini, openai-compat, huggingface  | 0.0                    |
-        | ``max_tokens``  | gemini, openai-compat, huggingface  | 512                    |
-        | ``host``        | ollama                               | localhost:11434        |
-        | ``options``     | ollama                               | {"temperature": 0}     |
-        | ``token``       | huggingface                          | —                      |
-        | ``use_local``   | huggingface                          | False                  |
-        | ``device``      | huggingface (local)                  | "cpu"                  |
-        | ``base_url``    | openai-compat                        | provider default       |
-        | ``provider``    | openai-compat                        | "openai"               |
-        | ``extra_headers``| openai-compat                       | None                   |
-        +-----------------+--------------------------------------+------------------------+
+        .. list-table::
+           :header-rows: 1
+           :widths: 18 38 22
+
+           * - kwarg
+             - backends
+             - default
+           * - ``api_key``
+             - gemini, openai, groq, together, ...
+             - (required)
+           * - ``model``
+             - all
+             - provider default
+           * - ``timeout``
+             - all
+             - 60 s
+           * - ``temperature``
+             - gemini, openai-compat, huggingface
+             - 0.0
+           * - ``max_tokens``
+             - gemini, openai-compat, huggingface
+             - 512
+           * - ``host``
+             - ollama
+             - localhost:11434
+           * - ``options``
+             - ollama
+             - {"temperature": 0}
+           * - ``token``
+             - huggingface
+             - (required)
+           * - ``use_local``
+             - huggingface
+             - False
+           * - ``device``
+             - huggingface (local)
+             - "cpu"
+           * - ``base_url``
+             - openai-compat
+             - provider default
+           * - ``provider``
+             - openai-compat
+             - "openai"
+           * - ``extra_headers``
+             - openai-compat
+             - None
 
     Examples
     --------
@@ -115,10 +145,7 @@ def get_backend(spec: Any = None, **kwargs) -> LLMBackend:
     if isinstance(spec, str):
         key = spec.strip().lower()
         if key not in _STRING_MAP:
-            raise ValueError(
-                f"Unknown backend '{spec}'. "
-                f"Choose from: {', '.join(_STRING_MAP)}"
-            )
+            raise ValueError(f"Unknown backend '{spec}'. " f"Choose from: {', '.join(_STRING_MAP)}")
         cls_or_fn = _STRING_MAP[key]
         return cls_or_fn(**kwargs)
 

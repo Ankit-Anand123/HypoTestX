@@ -5,8 +5,10 @@ Planned for v0.2.0.  Currently provides a thin wrapper around parametric
 and proportion tests that accepts the typical A/B test nomenclature
 (control / treatment, conversion rate, etc.).
 """
+
 from __future__ import annotations
-from typing import Any, List, Optional, Sequence
+
+from typing import Any, Sequence
 
 
 def ab_test_proportions(
@@ -22,12 +24,13 @@ def ab_test_proportions(
 
     Returns a :class:`~hypotestx.core.result.HypoResult`.
     """
-    from ..tests.parametric import two_proportion_z_test  # noqa: F401
-    return two_proportion_z_test(
-        control_successes, control_n,
-        treatment_successes, treatment_n,
-        alpha=alpha, alternative=alternative,
-    )
+    from ..tests.categorical import chi_square_test  # noqa: F401
+
+    table = [
+        [float(control_successes), float(control_n - control_successes)],
+        [float(treatment_successes), float(treatment_n - treatment_successes)],
+    ]
+    return chi_square_test(table, alpha=alpha)
 
 
 def ab_test_means(
@@ -41,10 +44,13 @@ def ab_test_means(
 
     Returns a :class:`~hypotestx.core.result.HypoResult`.
     """
-    from ..tests.parametric import welch_ttest  # noqa: F401
-    return welch_ttest(
-        list(control), list(treatment),
-        alpha=alpha, alternative=alternative,
+    from ..tests.parametric import two_sample_ttest  # noqa: F401
+
+    return two_sample_ttest(
+        list(control),
+        list(treatment),
+        alpha=alpha,
+        alternative=alternative,
     )
 
 

@@ -20,15 +20,16 @@ bootstrap_test(data, statistic_fn, null_value, n_resamples, alternative, seed)
 permutation_test(group1, group2, statistic_fn, n_resamples, alternative, seed)
     -> (p_value, observed_stat, permutation_distribution)
 """
+
 import random
 from typing import Callable, List, Optional, Tuple
 
 from ..math.statistics import mean, percentile
 
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _bootstrap_sample(data: List[float], rng: random.Random) -> List[float]:
     """Draw a bootstrap resample of the same length with replacement."""
@@ -59,35 +60,34 @@ def _bca_ci(
 
     Uses the acceleration (jackknife) and bias-correction factors.
     """
-    from ..math.basic import ln
-    from ..math.distributions import Normal
-    import math
 
-    n      = len(data)
+    from ..math.distributions import Normal
+
+    n = len(data)
     n_boot = len(boot_stats)
 
     # --- Bias correction z0 ---
     count_below = sum(1 for s in boot_stats if s < observed)
-    p0          = count_below / n_boot if n_boot > 0 else 0.5
-    p0          = max(min(p0, 1.0 - 1e-9), 1e-9)
-    norm        = Normal(0, 1)
-    z0          = norm.ppf(p0)
+    p0 = count_below / n_boot if n_boot > 0 else 0.5
+    p0 = max(min(p0, 1.0 - 1e-9), 1e-9)
+    norm = Normal(0, 1)
+    z0 = norm.ppf(p0)
 
     # --- Acceleration a (jackknife) ---
-    jack_stats  = []
+    jack_stats = []
     for i in range(n):
-        jack_data = data[:i] + data[i + 1:]
+        jack_data = data[:i] + data[i + 1 :]
         jack_stats.append(statistic_fn(jack_data))
-    jack_mean   = mean(jack_stats)
-    diffs       = [jack_mean - js for js in jack_stats]
-    numer       = sum(d ** 3 for d in diffs)
-    denom       = 6.0 * (sum(d ** 2 for d in diffs) ** 1.5)
-    a           = numer / denom if denom != 0 else 0.0
+    jack_mean = mean(jack_stats)
+    diffs = [jack_mean - js for js in jack_stats]
+    numer = sum(d**3 for d in diffs)
+    denom = 6.0 * (sum(d**2 for d in diffs) ** 1.5)
+    a = numer / denom if denom != 0 else 0.0
 
     # --- Adjusted quantiles ---
     alpha_half = (1.0 - ci) / 2.0
-    z_alpha    = norm.ppf(alpha_half)
-    z_1alpha   = norm.ppf(1.0 - alpha_half)
+    z_alpha = norm.ppf(alpha_half)
+    z_1alpha = norm.ppf(1.0 - alpha_half)
 
     def _adj_quantile(z_a: float) -> float:
         denom2 = 1.0 - a * (z0 + z_a)
@@ -107,6 +107,7 @@ def _bca_ci(
 # ---------------------------------------------------------------------------
 # Bootstrap CI — single sample
 # ---------------------------------------------------------------------------
+
 
 def bootstrap_ci(
     data: List[float],
@@ -140,8 +141,8 @@ def bootstrap_ci(
     if not 0 < ci < 1:
         raise ValueError("ci must be between 0 and 1")
 
-    rng       = random.Random(seed)
-    observed  = statistic_fn(data)
+    rng = random.Random(seed)
+    observed = statistic_fn(data)
     boot_stats = [statistic_fn(_bootstrap_sample(data, rng)) for _ in range(n_resamples)]
 
     if method == "percentile":
@@ -157,6 +158,7 @@ def bootstrap_ci(
 # ---------------------------------------------------------------------------
 # Bootstrap CI — two-sample difference
 # ---------------------------------------------------------------------------
+
 
 def bootstrap_two_sample_ci(
     group1: List[float],
@@ -183,11 +185,15 @@ def bootstrap_two_sample_ci(
     """
     group1 = [float(x) for x in group1]
     group2 = [float(x) for x in group2]
-    if diff_fn is None:
-        diff_fn = lambda a, b: mean(a) - mean(b)
 
-    rng        = random.Random(seed)
-    n1, n2     = len(group1), len(group2)
+    def _default_diff(a: list, b: list) -> float:
+        return mean(a) - mean(b)
+
+    if diff_fn is None:
+        diff_fn = _default_diff
+
+    rng = random.Random(seed)
+    n1, n2 = len(group1), len(group2)
     boot_stats = []
 
     for _ in range(n_resamples):
@@ -202,6 +208,7 @@ def bootstrap_two_sample_ci(
 # ---------------------------------------------------------------------------
 # Convenience: bootstrap mean CI
 # ---------------------------------------------------------------------------
+
 
 def bootstrap_mean_ci(
     data: List[float],
@@ -223,6 +230,7 @@ def bootstrap_mean_ci(
 # ---------------------------------------------------------------------------
 # Bootstrap hypothesis test (one-sample)
 # ---------------------------------------------------------------------------
+
 
 def bootstrap_test(
     data: List[float],
@@ -251,13 +259,13 @@ def bootstrap_test(
     -------
     (p_value, observed_stat, boot_distribution)
     """
-    data     = [float(x) for x in data]
+    data = [float(x) for x in data]
     observed = statistic_fn(data)
     # Shift data so null is true
-    shift    = null_value - observed
-    h0_data  = [x + shift for x in data]
+    shift = null_value - observed
+    h0_data = [x + shift for x in data]
 
-    rng        = random.Random(seed)
+    rng = random.Random(seed)
     boot_stats = [statistic_fn(_bootstrap_sample(h0_data, rng)) for _ in range(n_resamples)]
 
     if alternative == "two-sided":
@@ -269,13 +277,14 @@ def bootstrap_test(
     else:
         raise ValueError("alternative must be 'two-sided', 'greater', or 'less'")
 
-    p_value = (p_value + 1) / (n_resamples + 1)   # +1 smoothing
+    p_value = (p_value + 1) / (n_resamples + 1)  # +1 smoothing
     return p_value, observed, boot_stats
 
 
 # ---------------------------------------------------------------------------
 # Permutation test (two-sample)
 # ---------------------------------------------------------------------------
+
 
 def permutation_test(
     group1: List[float],
@@ -304,15 +313,18 @@ def permutation_test(
     """
     group1 = [float(x) for x in group1]
     group2 = [float(x) for x in group2]
-    if statistic_fn is None:
-        statistic_fn = lambda a, b: mean(a) - mean(b)
 
-    n1       = len(group1)
+    def _default_stat(a: list, b: list) -> float:
+        return mean(a) - mean(b)
+
+    if statistic_fn is None:
+        statistic_fn = _default_stat
+
+    n1 = len(group1)
     combined = group1 + group2
-    n_total  = len(combined)
     observed = statistic_fn(group1, group2)
 
-    rng      = random.Random(seed)
+    rng = random.Random(seed)
     perm_stats = []
 
     for _ in range(n_resamples):

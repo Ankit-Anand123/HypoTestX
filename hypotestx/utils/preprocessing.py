@@ -14,14 +14,16 @@ center(data)                  -> mean-center: x - mean
 robust_scale(data)            -> (x - median) / IQR
 apply(data, fn)               -> apply arbitrary fn element-wise
 """
-from typing import Callable, List, Optional, Tuple
-from ..math.statistics import mean, std, percentile, median, iqr
-from ..math.basic import ln, sqrt, abs_value
 
+from typing import Callable, List, Tuple
+
+from ..math.basic import ln
+from ..math.statistics import iqr, mean, median, percentile, std
 
 # ---------------------------------------------------------------------------
 # Standardize (z-score)
 # ---------------------------------------------------------------------------
+
 
 def standardize(
     data: List[float],
@@ -42,11 +44,11 @@ def standardize(
     List[float] of z-scores
     """
     data = [float(x) for x in data]
-    n    = len(data)
+    n = len(data)
     if n < 2:
         raise ValueError("standardize requires at least 2 data points")
     mu = mean(data)
-    s  = std(data, ddof=ddof)
+    s = std(data, ddof=ddof)
     if s == 0:
         raise ValueError("Cannot standardize data with zero variance")
     return [(x - mu) / s for x in data]
@@ -55,6 +57,7 @@ def standardize(
 # ---------------------------------------------------------------------------
 # Normalize (min-max scaling)
 # ---------------------------------------------------------------------------
+
 
 def normalize(
     data: List[float],
@@ -85,14 +88,15 @@ def normalize(
         # All values equal — return constant 0.5 between low and high
         mid = (low + high) / 2.0
         return [mid] * len(data)
-    span    = x_max - x_min
-    target  = high - low
+    span = x_max - x_min
+    target = high - low
     return [low + (x - x_min) / span * target for x in data]
 
 
 # ---------------------------------------------------------------------------
 # Winsorize
 # ---------------------------------------------------------------------------
+
 
 def winsorize(
     data: List[float],
@@ -131,6 +135,7 @@ def winsorize(
 # ---------------------------------------------------------------------------
 # Log transform
 # ---------------------------------------------------------------------------
+
 
 def log_transform(
     data: List[float],
@@ -174,6 +179,7 @@ def log_transform(
 # Rank transform
 # ---------------------------------------------------------------------------
 
+
 def rank_transform(
     data: List[float],
     method: str = "average",
@@ -194,8 +200,8 @@ def rank_transform(
     -------
     List[float] : ranks in the same order as input
     """
-    data  = [float(x) for x in data]
-    n     = len(data)
+    data = [float(x) for x in data]
+    n = len(data)
     order = sorted(range(n), key=lambda i: data[i])  # indices sorted by value
 
     ranks = [0.0] * n
@@ -232,12 +238,13 @@ def rank_transform(
 # Center
 # ---------------------------------------------------------------------------
 
+
 def center(data: List[float]) -> List[float]:
     """
     Mean-center data: return x_i - mean(x).
     """
-    data  = [float(x) for x in data]
-    mu    = mean(data)
+    data = [float(x) for x in data]
+    mu = mean(data)
     return [x - mu for x in data]
 
 
@@ -245,14 +252,15 @@ def center(data: List[float]) -> List[float]:
 # Robust scale
 # ---------------------------------------------------------------------------
 
+
 def robust_scale(data: List[float]) -> List[float]:
     """
     Scale using median and IQR: (x - median) / IQR.
     Robust to outliers.
     """
     data = [float(x) for x in data]
-    med  = median(data)
-    iqa  = iqr(data)
+    med = median(data)
+    iqa = iqr(data)
     if iqa == 0:
         raise ValueError("IQR is zero; cannot apply robust scaling")
     return [(x - med) / iqa for x in data]
@@ -261,6 +269,7 @@ def robust_scale(data: List[float]) -> List[float]:
 # ---------------------------------------------------------------------------
 # Generic apply
 # ---------------------------------------------------------------------------
+
 
 def apply(
     data: List[float],
@@ -288,7 +297,12 @@ def apply(
 
 
 __all__ = [
-    "standardize", "normalize", "winsorize",
-    "log_transform", "rank_transform", "center",
-    "robust_scale", "apply",
+    "standardize",
+    "normalize",
+    "winsorize",
+    "log_transform",
+    "rank_transform",
+    "center",
+    "robust_scale",
+    "apply",
 ]

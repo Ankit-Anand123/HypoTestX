@@ -6,19 +6,19 @@ Tests
 - Chi-Square Test of Independence / Goodness-of-Fit
 - Fisher's Exact Test  (2×2 tables)
 """
+
 from typing import List, Optional, Union
 
-from ..math.distributions import ChiSquare, Normal
-from ..math.basic import sqrt, ln
-from ..math.special import gamma
+from ..core.exceptions import DataFormatError
 from ..core.result import HypoResult
 from ..core.validators import validate_alpha, validate_alternative, validate_contingency_table
-from ..core.exceptions import DataFormatError, InsufficientDataError
-
+from ..math.basic import sqrt
+from ..math.distributions import ChiSquare
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_expected(observed: List[List[float]]) -> List[List[float]]:
     """Compute expected cell frequencies from row/column marginals."""
@@ -28,7 +28,9 @@ def _build_expected(observed: List[List[float]]) -> List[List[float]]:
     col_sums = [sum(observed[r][c] for r in range(nrows)) for c in range(ncols)]
     total = sum(row_sums)
     if total == 0:
-        raise DataFormatError("Contingency table is all zeros — cannot compute expected frequencies")
+        raise DataFormatError(
+            "Contingency table is all zeros — cannot compute expected frequencies"
+        )
     return [[row_sums[r] * col_sums[c] / total for c in range(ncols)] for r in range(nrows)]
 
 
@@ -39,7 +41,6 @@ def _hypergeom_pmf(k: int, N: int, K: int, n: int) -> float:
     Drawing *n* items from a population of *N* where *K* are successes.
     Uses log-space arithmetic to avoid overflow with large factorials.
     """
-    from ..math.special import gamma  # log-gamma for numerics
 
     def log_binom(a: int, b: int) -> float:
         """log C(a, b) using log-gamma"""
@@ -49,9 +50,11 @@ def _hypergeom_pmf(k: int, N: int, K: int, n: int) -> float:
             return 0.0
         # log C(a,b) = lgamma(a+1) - lgamma(b+1) - lgamma(a-b+1)
         import math
-        return (math.lgamma(a + 1) - math.lgamma(b + 1) - math.lgamma(a - b + 1))
+
+        return math.lgamma(a + 1) - math.lgamma(b + 1) - math.lgamma(a - b + 1)
 
     import math
+
     log_p = log_binom(K, k) + log_binom(N - K, n - k) - log_binom(N, n)
     if log_p == float("-inf"):
         return 0.0
@@ -61,6 +64,7 @@ def _hypergeom_pmf(k: int, N: int, K: int, n: int) -> float:
 # ---------------------------------------------------------------------------
 # Chi-Square Test
 # ---------------------------------------------------------------------------
+
 
 def chi_square_test(
     observed: Union[List[List[float]], List[float]],
@@ -127,8 +131,9 @@ def chi_square_test(
         # Check expected frequencies
         if any(e < 5 for e in expected_1d):
             import warnings
+
             warnings.warn(
-                "Some expected frequencies are less than 5; chi-square approximation may be inaccurate."
+                "Some expected frequencies are less than 5; chi-square approximation may be inaccurate."  # noqa: E501
             )
 
         chi2 = sum((o - e) ** 2 / e for o, e in zip(observed_1d, expected_1d) if e > 0)
@@ -151,14 +156,10 @@ def chi_square_test(
         n = sum(table_2d[r][c] for r in range(nrows) for c in range(ncols))
 
         # Check expected frequencies
-        small_cells = sum(
-            1
-            for r in range(nrows)
-            for c in range(ncols)
-            if expected_2d[r][c] < 5
-        )
+        small_cells = sum(1 for r in range(nrows) for c in range(ncols) if expected_2d[r][c] < 5)
         if small_cells > 0:
             import warnings
+
             warnings.warn(
                 f"{small_cells} cell(s) have expected frequency < 5; "
                 "consider Fisher's exact test for 2×2 tables."
@@ -247,6 +248,7 @@ def chi_square_test(
 # Fisher's Exact Test
 # ---------------------------------------------------------------------------
 
+
 def fisher_exact_test(
     table: List[List[float]],
     alpha: float = 0.05,
@@ -285,11 +287,11 @@ def fisher_exact_test(
     a, b = int(table[0][0]), int(table[0][1])
     c, d = int(table[1][0]), int(table[1][1])
 
-    R1 = a + b   # row 1 total
-    R2 = c + d   # row 2 total
-    C1 = a + c   # col 1 total
-    C2 = b + d   # col 2 total
-    N  = R1 + R2
+    R1 = a + b  # row 1 total
+    R2 = c + d  # row 2 total
+    C1 = a + c  # col 1 total
+    C2 = b + d  # col 2 total
+    N = R1 + R2
 
     if N == 0:
         raise DataFormatError("Contingency table total count is zero")
